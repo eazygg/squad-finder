@@ -220,22 +220,14 @@ class Profile {
     }
 
     async init() {
-        //await this.updateActivity(); // ← Добавьте в начало
         await this.loadFreshUserData();
         await this.loadUserData();
         this.loadPsychologicalResults();
         this.loadTestHistory();
-        this.renderGames();
+        this.renderGames(); // Это создаст список игр
         this.bindEvents();
         this.bindAvatarEvents();
-        await this.loadSavedGames();
-
-
-        // Проверяем, нужно ли показать историю
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('showHistory') === 'true') {
-            document.getElementById('testHistoryCard')?.scrollIntoView({ behavior: 'smooth' });
-        }
+        await this.loadSavedGames(); // Это покажет либо игры, либо форму выбора
     }
 
     async updateActivity() {
@@ -269,53 +261,35 @@ class Profile {
     }
 
     displaySavedGames(games) {
-        console.log('displaySavedGames called with:', games);
-
         const savedContainer = document.getElementById('savedGamesContainer');
         const savedCard = document.getElementById('savedGamesCard');
-        const selectionCard = document.getElementById('gamesSelectionCard');  // ← изменили селектор
+        const selectionBlock = document.getElementById('gamesSelectionBlock');
         const saveBtn = document.getElementById('saveGamesBtn');
 
+        console.log('displaySavedGames called with:', games);
+        console.log('Elements found:', { savedCard: !!savedCard, selectionBlock: !!selectionBlock, saveBtn: !!saveBtn });
+
         if (games && games.length > 0) {
-            console.log('Отображаем игры, количество:', games.length);
+            // Есть сохраненные игры - показываем их, скрываем выбор
+            if (savedCard) savedCard.style.display = 'block';
+            if (selectionBlock) selectionBlock.style.display = 'none';
+            if (saveBtn) saveBtn.style.display = 'none';
 
-            if (savedCard) {
-                savedCard.style.display = 'block';
-                savedCard.style.visibility = 'visible';
-                savedCard.style.opacity = '1';
-                console.log('savedGamesCard показан');
-            }
-
-            if (selectionCard) {
-                selectionCard.style.display = 'none';
-            }
-
-            if (saveBtn) {
-                saveBtn.style.display = 'none';
-            }
-
-            if (savedContainer) {
-                savedContainer.style.display = 'grid';
-                savedContainer.style.visibility = 'visible';
-                savedContainer.innerHTML = games.map(game => `
-                <div class="game-card">
-                    <i class="fas fa-gamepad game-icon ${this.getGameIconClass(game)}"></i>
-                    <h4>${this.escapeHtml(game)}</h4>
-                </div>
-            `).join('');
-                console.log('Игры отображены');
-            }
-
-            const editButton = savedCard?.querySelector('.btn-secondary');
-            if (editButton) {
-                editButton.style.display = 'block';
-            }
-
+            savedContainer.innerHTML = games.map(game => `
+            <div class="game-card">
+                <i class="fas fa-gamepad game-icon ${this.getGameIconClass(game)}"></i>
+                <h4>${this.escapeHtml(game)}</h4>
+            </div>
+        `).join('');
         } else {
-            console.log('Игр нет');
+            // Нет сохраненных игр - показываем блок выбора
             if (savedCard) savedCard.style.display = 'none';
-            if (selectionCard) selectionCard.style.display = 'block';
+            if (selectionBlock) selectionBlock.style.display = 'block';
             if (saveBtn) saveBtn.style.display = 'block';
+
+            // Если нет игр, открываем список для выбора
+            this.openGamesDropdown();
+            this.renderGames();
         }
     }
     getGameIconClass(gameName) {
@@ -367,7 +341,8 @@ class Profile {
     openGamesDropdown() {
         const gamesListContainer = document.querySelector('.games-list-container');
         if (gamesListContainer) {
-            gamesListContainer.classList.remove('hidden');
+            gamesListContainer.classList.add('show');
+            gamesListContainer.style.display = 'block';
         }
     }
 
@@ -774,6 +749,11 @@ class Profile {
         const container = document.getElementById('gamesContainer');
         const searchInput = document.getElementById('gameSearch');
 
+        if (!container) {
+            console.error('gamesContainer not found!');
+            return;
+        }
+
         const renderGamesList = (games) => {
             container.innerHTML = games.map(game => `
             <div class="game-item" data-game="${game}">
@@ -786,8 +766,8 @@ class Profile {
         `).join('');
         };
 
+        // Первоначальная отрисовка
         renderGamesList(this.availableGames);
-        // ❌ НЕ вызываем openGamesDropdown() здесь, чтобы не открывать список автоматически
 
         // Поиск игр
         if (searchInput) {
@@ -800,7 +780,7 @@ class Profile {
             });
         }
 
-        // Обработка клика по плашке
+        // Обработка кликов
         container.addEventListener('click', (e) => {
             const gameItem = e.target.closest('.game-item');
             if (gameItem) {
@@ -817,6 +797,8 @@ class Profile {
             }
         });
     }
+
+
     hashCode(str) {
         let hash = 0;
         for (let i = 0; i < str.length; i++) {
