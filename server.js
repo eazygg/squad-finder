@@ -107,6 +107,68 @@ app.use('/api/password-reset', passwordResetRoutes);
 // Инициализация базы данных
 async function initializeDatabase() {
     try {
+        // Таблица пользователей
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS users (
+                id SERIAL PRIMARY KEY,
+                email VARCHAR(255) UNIQUE NOT NULL,
+                username VARCHAR(100) NOT NULL,
+                password_hash VARCHAR(255) NOT NULL,
+                openness INTEGER DEFAULT NULL,
+                conscientiousness INTEGER DEFAULT NULL,
+                extraversion INTEGER DEFAULT NULL,
+                agreeableness INTEGER DEFAULT NULL,
+                neuroticism INTEGER DEFAULT NULL,
+                test_completed BOOLEAN DEFAULT FALSE,
+                test_completed_at TIMESTAMP,
+                avatar_url VARCHAR(255),
+                role VARCHAR(50) DEFAULT 'user',
+                reset_token VARCHAR(255),
+                reset_expires TIMESTAMP,
+                last_login TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+        console.log('✅ Users table created/verified');
+
+        // Таблица игр пользователей
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS user_games (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+                game_name VARCHAR(255) NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(user_id, game_name)
+            )
+        `);
+        console.log('✅ User_games table created/verified');
+
+        // Таблица вопросов теста
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS psychological_questions (
+                id SERIAL PRIMARY KEY,
+                question_text TEXT NOT NULL,
+                trait VARCHAR(20) NOT NULL CHECK (trait IN ('openness', 'conscientiousness', 'extraversion', 'agreeableness', 'neuroticism'))
+            )
+        `);
+        console.log('✅ Psychological_questions table created/verified');
+
+        // Вставьте вопросы, если их нет
+        const questionsCount = await pool.query('SELECT COUNT(*) FROM psychological_questions');
+        if (parseInt(questionsCount.rows[0].count) === 0) {
+            await pool.query(`
+                INSERT INTO psychological_questions (question_text, trait) VALUES
+                ('Я люблю пробовать что-то новое', 'openness'),
+                ('Я предпочитаю следовать плану', 'conscientiousness'),
+                ('Я легко нахожу общий язык с людьми', 'extraversion'),
+                ('Я стараюсь помогать другим', 'agreeableness'),
+                ('Я часто переживаю о мелочах', 'neuroticism')
+                -- Добавьте остальные 20 вопросов
+            `);
+            console.log('✅ Questions inserted');
+        }
+
         // Таблица игровых комнат
         await pool.query(`
             CREATE TABLE IF NOT EXISTS game_rooms (
@@ -116,11 +178,11 @@ async function initializeDatabase() {
                 max_players INTEGER DEFAULT 4,
                 current_players INTEGER DEFAULT 1,
                 created_by INTEGER REFERENCES users(id) ON DELETE CASCADE,
-                is_public BOOLEAN DEFAULT TRUE,
-                status VARCHAR(20) DEFAULT 'waiting' CHECK (status IN ('waiting', 'in_game', 'finished')),
+                status VARCHAR(20) DEFAULT 'waiting',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
+        console.log('✅ Game_rooms table created/verified');
 
         // Таблица участников комнат
         await pool.query(`
@@ -132,6 +194,7 @@ async function initializeDatabase() {
                 UNIQUE(room_id, user_id)
             )
         `);
+        console.log('✅ Room_players table created/verified');
 
         // Таблица сообщений комнат
         await pool.query(`
@@ -143,34 +206,31 @@ async function initializeDatabase() {
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
+        console.log('✅ Room_messages table created/verified');
 
-        // Индексы для оптимизации
+        // Таблица истории тестов
         await pool.query(`
-            CREATE INDEX IF NOT EXISTS idx_game_rooms_status ON game_rooms(status)
+            CREATE TABLE IF NOT EXISTS test_history (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+                openness INTEGER,
+                conscientiousness INTEGER,
+                extraversion INTEGER,
+                agreeableness INTEGER,
+                neuroticism INTEGER,
+                test_number INTEGER DEFAULT 1,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
         `);
-        await pool.query(`
-            CREATE INDEX IF NOT EXISTS idx_game_rooms_game ON game_rooms(game_name)
-        `);
-        await pool.query(`
-            CREATE INDEX IF NOT EXISTS idx_room_players_room ON room_players(room_id)
-        `);
-        await pool.query(`
-            CREATE INDEX IF NOT EXISTS idx_room_players_user ON room_players(user_id)
-        `);
-        await pool.query(`
-            CREATE INDEX IF NOT EXISTS idx_room_messages_room ON room_messages(room_id)
-        `);
-        await pool.query(`
-            CREATE INDEX IF NOT EXISTS idx_room_messages_created ON room_messages(created_at)
-        `);
+        console.log('✅ Test_history table created/verified');
 
         console.log('✅ Все таблицы готовы к работе');
 
     } catch (error) {
         console.error('❌ Ошибка инициализации базы данных:', error);
+        throw error; // Важно: пробрасываем ошибку дальше
     }
 }
-
 // Socket.IO логика
 io.on('connection', (socket) => {
     console.log('🔗 Пользователь подключился:', socket.id);
@@ -460,19 +520,21 @@ async function sendRoomHistory(socket, roomId) {
 // Инициализация и запуск сервера
 async function startServer() {
     try {
+        // Сначала инициализируем базу данных (создаем таблицы)
         await initializeDatabase();
 
+        // Потом запускаем сервер
         const PORT = process.env.PORT || 3002;
-        server.listen(PORT, () => {
+        server.listen(PORT, '0.0.0.0', () => {
             console.log(`✅ Сервер запущен на порту ${PORT}`);
             console.log(`👉 Главная страница: http://localhost:${PORT}`);
             console.log(`👉 API тест: http://localhost:${PORT}/api/test`);
-            console.log(`👉 Папка uploads: ${uploadsDir}`);
         });
     } catch (error) {
         console.error('❌ Ошибка запуска сервера:', error);
         process.exit(1);
     }
 }
+
 
 startServer();
