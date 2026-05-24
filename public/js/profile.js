@@ -372,8 +372,10 @@ class Profile {
     }
 
     editGames() {
+        console.log('editGames called'); // Для отладки
+
         const savedCard = document.getElementById('savedGamesCard');
-        const selectionCard = document.querySelector('.games-selection')?.closest('.profile-card');
+        const selectionCard = document.querySelector('.games-selection').closest('.profile-card');
         const saveBtn = document.getElementById('saveGamesBtn');
 
         if (savedCard) savedCard.style.display = 'none';
@@ -462,6 +464,7 @@ class Profile {
                 // Сбрасываем все чекбоксы
                 document.querySelectorAll('.game-checkbox').forEach(checkbox => {
                     checkbox.checked = false;
+                    checkbox.closest('.game-item')?.classList.remove('selected');
                 });
 
                 // Отмечаем сохраненные игры
@@ -469,6 +472,7 @@ class Profile {
                     const checkbox = document.getElementById(`game-${this.hashCode(gameName)}`);
                     if (checkbox) {
                         checkbox.checked = true;
+                        checkbox.closest('.game-item')?.classList.add('selected');
                     }
                 });
 
@@ -1028,4 +1032,5 @@ let profile;
 // Запуск профиля
 document.addEventListener('DOMContentLoaded', () => {
     profile = new Profile();
+    window.profile = profile;
 });
