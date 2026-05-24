@@ -9,7 +9,6 @@
     <link rel="stylesheet" href="/css/profile.css">
 </head>
 <body>
-
 <div class="container">
     <header class="profile-header">
         <div class="header-content">
@@ -21,9 +20,6 @@
                 <a href="/search.html" class="nav-link">
                     <i class="fas fa-search"></i> Поиск
                 </a>
-                <button class="btn btn-primary" onclick="privateChat.openChat()">
-                    <i class="fas fa-comments"></i> Сообщения
-                </button>
                 <button id="logoutBtn" class="btn-secondary">
                     <i class="fas fa-sign-out-alt"></i> Выйти
                 </button>
@@ -87,49 +83,41 @@
         </div>
 
         <!-- Мои игры -->
-        <!-- Мои игры - форма выбора -->
-        <div class="profile-card" id="gamesSelectionCard">
+        <div class="profile-card">
             <h3><i class="fas fa-gamepad"></i> Мои игры</h3>
-            <div class="games-selection">
+
+            <!-- Блок выбора игр (показывается когда нет сохраненных игр или при нажатии "Изменить выбор") -->
+            <div id="gamesSelectionBlock" class="games-selection" style="display: none;">
                 <div class="search-container">
                     <input type="text" id="gameSearch" placeholder="Поиск игр..." class="search-input">
                 </div>
-                <div class="games-list-container hidden">
+                <div class="games-list-container">
                     <div id="gamesContainer" class="games-container"></div>
                 </div>
                 <div class="selected-games">
                     <h4>Выбрано игр: <span id="selectedCount">0</span></h4>
                     <div id="selectedGamesList" class="selected-games-list"></div>
                 </div>
-                <button id="saveGamesBtn" class="btn-primary">
+                <button id="saveGamesBtn" class="btn btn-primary">
                     <i class="fas fa-save"></i> Сохранить выбор
                 </button>
             </div>
-        </div>
 
-        <!-- Мои игры - сохраненные плашки (ОТДЕЛЬНАЯ КАРТОЧКА) -->
-        <div class="profile-card" id="savedGamesCard" style="display: none;">
-            <h3><i class="fas fa-gamepad"></i> Мои любимые игры</h3>
-            <div id="savedGamesContainer" class="saved-games-container"></div>
-            <button class="btn-secondary btn-sm" onclick="profile.editGames()">
-                <i class="fas fa-edit"></i> Изменить выбор
-            </button>
+            <!-- Блок сохраненных игр (показывается когда есть игры) -->
+            <div id="savedGamesCard">
+                <div id="savedGamesContainer" class="saved-games-container"></div>
+                <button class="btn-secondary btn-sm" onclick="profile.editGames()">
+                    <i class="fas fa-edit"></i> Изменить выбор
+                </button>
+            </div>
         </div>
     </div>
 </div>
-<footer class="footer">
-    <p>© 2026 Squad Finder. Все права защищены.</p>
-    <p style="margin-top: 10px;">
-        <a href="/privacy.html" style="color: rgba(255,255,255,0.7); text-decoration: none; margin: 0 10px;">
-            <i class="fas fa-shield-alt"></i> Политика конфиденциальности
-        </a>
-    </p>
-</footer>
+
 <script src="/js/dialog.js"></script>
 <script src="/js/app-state-manager.js"></script>
-<script src="/socket.io/socket.io.js"></script>  <!-- ← ЭТО ВАЖНО -->
+<script src="/socket.io/socket.io.js"></script>
 <script src="/js/chat.js"></script>
 <script src="/js/profile.js"></script>
-<script src="/js/voice-controller.js"></script>
 </body>
 </html>

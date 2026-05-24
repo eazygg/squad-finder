@@ -372,20 +372,26 @@ class Profile {
     }
 
     editGames() {
-        console.log('editGames called'); // Для отладки
-
         const savedCard = document.getElementById('savedGamesCard');
-        const selectionCard = document.querySelector('.games-selection').closest('.profile-card');
+        const selectionBlock = document.getElementById('gamesSelectionBlock');
         const saveBtn = document.getElementById('saveGamesBtn');
 
         if (savedCard) savedCard.style.display = 'none';
-        if (selectionCard) selectionCard.style.display = 'block';
+        if (selectionBlock) selectionBlock.style.display = 'block';
         if (saveBtn) saveBtn.style.display = 'block';
 
-        // Загружаем текущий выбор игр (отмечаем чекбоксы)
         this.loadCurrentGameSelection();
     }
 
+    hideGameSelection() {
+        const savedCard = document.getElementById('savedGamesCard');
+        const selectionBlock = document.getElementById('gamesSelectionBlock');
+        const saveBtn = document.getElementById('saveGamesBtn');
+
+        if (savedCard) savedCard.style.display = 'block';
+        if (selectionBlock) selectionBlock.style.display = 'none';
+        if (saveBtn) saveBtn.style.display = 'none';
+    }
 
     async loadTestHistory() {
         try {
