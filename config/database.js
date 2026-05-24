@@ -1,25 +1,21 @@
 // config/database.js
-
-// Импортируем необходимые модули
 const { Pool } = require('pg');
-require('dotenv').config(); // Загружаем переменные из файла .env
 
-// Создаем и настраиваем пул соединений к PostgreSQL
-// Пул — это набор соединений, которые переиспользуются, это эффективно
+// Определяем, используем ли мы продакшн (Render) или разработку (localhost)
+const isProduction = process.env.NODE_ENV === 'production';
+
 const pool = new Pool({
-    user: 'postgres', // Имя пользователя БД (по умолчанию 'postgres')
-    host: 'localhost', // Адрес сервера БД (у нас он на этом же компьютере)
-    database: 'squad_finder_db', // Имя БД, КОТОРУЮ МЫ СОЗДАЛИ В pgAdmin
-    password: process.env.DB_PASSWORD, // Пароль БЕРЕТСЯ ИЗ ПЕРЕМЕННОЙ ОКРУЖЕНИЯ. Замените на свой, если не используете .env
-    port: 5432, // Стандартный порт PostgreSQL
+    connectionString: process.env.DATABASE_URL || 'postgresql://postgres:password@localhost:5432/squad_finder_db',
+    ssl: isProduction ? { rejectUnauthorized: false } : false
 });
 
-// Необязательно, но очень полезно: обработчик события на ошибку пула
+// Проверка подключения
+pool.on('connect', () => {
+    console.log('✅ Connected to database');
+});
+
 pool.on('error', (err) => {
-    console.error('Неожиданная ошибка на клиенте пула', err);
-    process.exit(-1); // Завершаем процесс приложения в случае критической ошибки БД
+    console.error('❌ Database error:', err.message);
 });
 
-// Экспортируем созданный пул, чтобы использовать его в других файлах
-// Теперь мы можем писать запросы к БД через pool.query()
 module.exports = pool;

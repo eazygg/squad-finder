@@ -8,6 +8,10 @@ const fs = require('fs');
 
 const jwt = require('jsonwebtoken'); // ← ДОБАВЬТЕ ЭТУ СТРОКУ
 require('dotenv').config();
+// В самом начале server.js, сразу после require('dotenv').config()
+const isProduction = process.env.NODE_ENV === 'production';
+console.log('Running in:', isProduction ? 'PRODUCTION' : 'DEVELOPMENT');
+console.log('DATABASE_URL exists:', !!process.env.DATABASE_URL);
 
 const pool = require('./config/database');
 const authRoutes = require('./routes/auth');
