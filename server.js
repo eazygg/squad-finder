@@ -155,18 +155,47 @@ async function initializeDatabase() {
         console.log('✅ Psychological_questions table created/verified');
 
         // Вставьте вопросы, если их нет
+        // Вставьте все 25 вопросов, если их нет
         const questionsCount = await pool.query('SELECT COUNT(*) FROM psychological_questions');
         if (parseInt(questionsCount.rows[0].count) === 0) {
             await pool.query(`
                 INSERT INTO psychological_questions (question_text, trait) VALUES
-                ('Я люблю пробовать что-то новое', 'openness'),
-                ('Я предпочитаю следовать плану', 'conscientiousness'),
-                ('Я легко нахожу общий язык с людьми', 'extraversion'),
-                ('Я стараюсь помогать другим', 'agreeableness'),
-                ('Я часто переживаю о мелочах', 'neuroticism')
-                -- Добавьте остальные 20 вопросов
+                                                                               -- Открытость опыту (openness)
+                                                                               ('Я люблю пробовать новые виды деятельности', 'openness'),
+                                                                               ('Мне нравится изучать новые идеи и концепции', 'openness'),
+                                                                               ('Я ценю искусство и красоту', 'openness'),
+                                                                               ('Я люблю путешествовать и узнавать новые культуры', 'openness'),
+                                                                               ('Мне нравится решать сложные задачи', 'openness'),
+
+                                                                               -- Добросовестность (conscientiousness)
+                                                                               ('Я всегда выполняю свои обещания', 'conscientiousness'),
+                                                                               ('Я люблю порядок и планирование', 'conscientiousness'),
+                                                                               ('Я внимателен к деталям', 'conscientiousness'),
+                                                                               ('Я предпочитаю работать по графику', 'conscientiousness'),
+                                                                               ('Я довожу начатые дела до конца', 'conscientiousness'),
+
+                                                                               -- Экстраверсия (extraversion)
+                                                                               ('Я легко знакомлюсь с новыми людьми', 'extraversion'),
+                                                                               ('Я люблю быть в центре внимания', 'extraversion'),
+                                                                               ('Я предпочитаю работать в команде', 'extraversion'),
+                                                                               ('Я энергичный и активный человек', 'extraversion'),
+                                                                               ('Мне нравится общаться с разными людьми', 'extraversion'),
+
+                                                                               -- Доброжелательность (agreeableness)
+                                                                               ('Я стараюсь понимать чувства других', 'agreeableness'),
+                                                                               ('Я готов помочь безвозмездно', 'agreeableness'),
+                                                                               ('Я избегаю конфликтов', 'agreeableness'),
+                                                                               ('Я доверяю окружающим', 'agreeableness'),
+                                                                               ('Я считаю, что люди в основном хорошие', 'agreeableness'),
+
+                                                                               -- Нейротизм (neuroticism)
+                                                                               ('Я часто переживаю о будущем', 'neuroticism'),
+                                                                               ('Я легко расстраиваюсь из-за критики', 'neuroticism'),
+                                                                               ('Я чувствую напряжение в стрессовых ситуациях', 'neuroticism'),
+                                                                               ('Я часто испытываю перепады настроения', 'neuroticism'),
+                                                                               ('Мне трудно расслабиться после напряженного дня', 'neuroticism')
             `);
-            console.log('✅ Questions inserted');
+            console.log('✅ 25 questions inserted');
         }
 
         // Таблица игровых комнат
