@@ -564,6 +564,52 @@ async function startServer() {
         process.exit(1);
     }
 }
+// Временный эндпоинт для установки русских вопросов
+app.post('/api/setup-russian-questions', async (req, res) => {
+    try {
+        await pool.query('TRUNCATE psychological_questions RESTART IDENTITY');
 
+        await pool.query(`
+            INSERT INTO psychological_questions (question_text, trait) VALUES
+            ('Я люблю пробовать новые виды деятельности', 'openness'),
+            ('Мне нравится изучать новые идеи и концепции', 'openness'),
+            ('Я ценю искусство и красоту', 'openness'),
+            ('Я люблю путешествовать и узнавать новые культуры', 'openness'),
+            ('Мне нравится решать сложные задачи', 'openness'),
+            ('Я всегда выполняю свои обещания', 'conscientiousness'),
+            ('Я люблю порядок и планирование', 'conscientiousness'),
+            ('Я внимателен к деталям', 'conscientiousness'),
+            ('Я предпочитаю работать по графику', 'conscientiousness'),
+            ('Я довожу начатые дела до конца', 'conscientiousness'),
+            ('Я легко знакомлюсь с новыми людьми', 'extraversion'),
+            ('Я люблю быть в центре внимания', 'extraversion'),
+            ('Я предпочитаю работать в команде', 'extraversion'),
+            ('Я энергичный и активный человек', 'extraversion'),
+            ('Мне нравится общаться с разными людьми', 'extraversion'),
+            ('Я стараюсь понимать чувства других', 'agreeableness'),
+            ('Я готов помочь безвозмездно', 'agreeableness'),
+            ('Я избегаю конфликтов', 'agreeableness'),
+            ('Я доверяю окружающим', 'agreeableness'),
+            ('Я считаю, что люди в основном хорошие', 'agreeableness'),
+            ('Я часто переживаю о будущем', 'neuroticism'),
+            ('Я легко расстраиваюсь из-за критики', 'neuroticism'),
+            ('Я чувствую напряжение в стрессовых ситуациях', 'neuroticism'),
+            ('Я часто испытываю перепады настроения', 'neuroticism'),
+            ('Мне трудно расслабиться после напряженного дня', 'neuroticism')
+        `);
+
+        const result = await pool.query('SELECT COUNT(*) FROM psychological_questions');
+
+        res.json({
+            success: true,
+            message: '✅ 25 русских вопросов установлено!',
+            count: parseInt(result.rows[0].count)
+        });
+
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
 
 startServer();
