@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Профиль пользователя - Squad Finder</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/profile.css">
+</head>
+<body>
+
+<div class="profile-container">
+    <header class="profile-header">
+        <div class="header-content">
+            <h1><i class="fas fa-gamepad"></i> Squad Finder</h1>
+            <nav class="profile-nav">
+                <a href="/rooms.html" class="nav-link">
+                    <i class="fas fa-door-open"></i> Комнаты
+                </a>
+                <a href="/profile.html" class="nav-link">
+                    <i class="fas fa-user"></i> Мой профиль
+                </a>
+                <button class="btn btn-primary" onclick="privateChat.openChat()">
+                    <i class="fas fa-comments"></i> Сообщения
+                </button>
+                <button id="logoutBtn" class="btn-secondary">
+                    <i class="fas fa-sign-out-alt"></i> Выйти
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <div class="other-user-profile" id="otherUserProfileContainer">
+        <div class="loading">
+            <i class="fas fa-spinner fa-spin"></i> Загрузка профиля...
+        </div>
+    </div>
+</div>
+<footer class="footer">
+    <p>© 2026 Squad Finder. Все права защищены.</p>
+    <p style="margin-top: 10px;">
+        <a href="/privacy.html" style="color: rgba(255,255,255,0.7); text-decoration: none; margin: 0 10px;">
+            <i class="fas fa-shield-alt"></i> Политика конфиденциальности
+        </a>
+    </p>
+</footer>
+<script src="/js/app-state-manager.js"></script>
+<script src="/js/dialog.js"></script>
+
+<!-- ПОТОМ Socket.IO (он должен быть загружен ДО chat.js) -->
+<script src="/socket.io/socket.io.js"></script>
+
+<!-- ПОТОМ chat.js -->
+<script src="/js/chat.js"></script>
+
+<!-- ПОТОМ остальные скрипты -->
+<script src="/js/user-profile.js"></script>
+<script src="/js/voice-controller.js"></script>
+</body>
+</html>

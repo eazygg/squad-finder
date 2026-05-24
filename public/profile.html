@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мой профиль - Squad Finder</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/profile.css">
+</head>
+<body>
+
+<div class="container">
+    <header class="profile-header">
+        <div class="header-content">
+            <h1><i class="fas fa-user"></i> Мой профиль</h1>
+            <nav class="profile-nav">
+                <a href="/rooms.html" class="nav-link">
+                    <i class="fas fa-door-open"></i> Комнаты
+                </a>
+                <a href="/search.html" class="nav-link">
+                    <i class="fas fa-search"></i> Поиск
+                </a>
+                <button class="btn btn-primary" onclick="privateChat.openChat()">
+                    <i class="fas fa-comments"></i> Сообщения
+                </button>
+                <button id="logoutBtn" class="btn-secondary">
+                    <i class="fas fa-sign-out-alt"></i> Выйти
+                </button>
+                <button id="adminPanelBtn" class="btn-secondary" style="display: none;">
+                    <i class="fas fa-cog"></i> Админ-панель
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <div class="profile-content">
+        <!-- Основная информация -->
+        <div class="profile-card">
+            <div class="profile-info">
+                <div class="avatar-section">
+                    <form id="avatarForm">
+                        <div class="avatar-container">
+                            <div id="avatarPlaceholder" class="avatar-placeholder">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <img id="avatarImg" class="avatar-image" src="" alt="Аватар" style="display: none;">
+                            <input type="file" id="avatarInput" accept="image/*" style="display: none;">
+                        </div>
+                        <button type="button" class="avatar-upload-btn" onclick="document.getElementById('avatarInput').click()">
+                            <i class="fas fa-camera"></i> Сменить аватар
+                        </button>
+                    </form>
+                </div>
+                <div class="user-details">
+                    <h2 id="username">Загрузка...</h2>
+                    <p id="userEmail" class="user-email">Загрузка...</p>
+                    <p class="member-since">
+                        <i class="fas fa-clock"></i> Был(а) в сети: <span id="joinDate">Загрузка...</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Психологический портрет -->
+        <div class="profile-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;">
+                <h3><i class="fas fa-brain"></i> Психологический портрет</h3>
+                <button class="btn-primary btn-sm retake-test-btn" onclick="window.location.href='/test.html?retake=true'">
+                    <i class="fas fa-sync-alt"></i> Перепройти тест
+                </button>
+            </div>
+            <div id="psychoResults" class="psycho-results">
+                <div class="loading">Загрузка результатов...</div>
+            </div>
+        </div>
+
+        <!-- История тестов -->
+        <div class="profile-card" id="testHistoryCard" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;">
+                <h3><i class="fas fa-history"></i> История тестов</h3>
+                <span class="test-count-badge" id="testCountBadge">Тестов пройдено: 0</span>
+            </div>
+            <div id="testHistoryContainer" class="test-history-container">
+                <div class="loading">Загрузка истории...</div>
+            </div>
+        </div>
+
+        <!-- Мои игры -->
+        <!-- Мои игры - форма выбора -->
+        <div class="profile-card" id="gamesSelectionCard">
+            <h3><i class="fas fa-gamepad"></i> Мои игры</h3>
+            <div class="games-selection">
+                <div class="search-container">
+                    <input type="text" id="gameSearch" placeholder="Поиск игр..." class="search-input">
+                </div>
+                <div class="games-list-container hidden">
+                    <div id="gamesContainer" class="games-container"></div>
+                </div>
+                <div class="selected-games">
+                    <h4>Выбрано игр: <span id="selectedCount">0</span></h4>
+                    <div id="selectedGamesList" class="selected-games-list"></div>
+                </div>
+                <button id="saveGamesBtn" class="btn-primary">
+                    <i class="fas fa-save"></i> Сохранить выбор
+                </button>
+            </div>
+        </div>
+
+        <!-- Мои игры - сохраненные плашки (ОТДЕЛЬНАЯ КАРТОЧКА) -->
+        <div class="profile-card" id="savedGamesCard" style="display: none;">
+            <h3><i class="fas fa-gamepad"></i> Мои любимые игры</h3>
+            <div id="savedGamesContainer" class="saved-games-container"></div>
+            <button class="btn-secondary btn-sm" onclick="profile.editGames()">
+                <i class="fas fa-edit"></i> Изменить выбор
+            </button>
+        </div>
+    </div>
+</div>
+<footer class="footer">
+    <p>© 2026 Squad Finder. Все права защищены.</p>
+    <p style="margin-top: 10px;">
+        <a href="/privacy.html" style="color: rgba(255,255,255,0.7); text-decoration: none; margin: 0 10px;">
+            <i class="fas fa-shield-alt"></i> Политика конфиденциальности
+        </a>
+    </p>
+</footer>
+<script src="/js/dialog.js"></script>
+<script src="/js/app-state-manager.js"></script>
+<script src="/socket.io/socket.io.js"></script>  <!-- ← ЭТО ВАЖНО -->
+<script src="/js/chat.js"></script>
+<script src="/js/profile.js"></script>
+<script src="/js/voice-controller.js"></script>
+</body>
+</html>

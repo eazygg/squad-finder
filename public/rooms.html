@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Игровые комнаты - Squad Finder</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/rooms.css">
+</head>
+<body>
+
+<div class="container">
+    <header class="rooms-header">
+        <div class="header-content">
+            <h1><i class="fas fa-door-open"></i> Игровые комнаты</h1>
+            <nav class="rooms-nav">
+                <a href="/profile.html" class="nav-link">
+                    <i class="fas fa-user"></i> Профиль
+                </a>
+                <a href="/search.html" class="nav-link">
+                    <i class="fas fa-search"></i> Поиск
+                </a>
+                <button class="btn btn-primary" onclick="if(window.privateChat) privateChat.openChat()">
+                    <i class="fas fa-comments"></i> Сообщения
+                </button>
+                <button id="logoutBtn" class="btn-secondary">
+                    <i class="fas fa-sign-out-alt"></i> Выйти
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <div class="rooms-actions">
+        <button id="createRoomBtn" class="btn-primary">
+            <i class="fas fa-plus"></i> Создать комнату
+        </button>
+
+        <div class="filter-section">
+            <select id="gameFilter" class="filter-select">
+                <option value="">Все игры</option>
+            </select>
+            <button id="refreshBtn" class="btn-secondary">
+                <i class="fas fa-sync-alt"></i> Обновить
+            </button>
+        </div>
+    </div>
+
+    <div class="my-rooms-section">
+        <h3><i class="fas fa-users"></i> Мои комнаты</h3>
+        <div id="myRoomsContainer" class="rooms-container">
+            <div class="loading">Загрузка ваших комнат...</div>
+        </div>
+    </div>
+
+    <div class="rooms-list">
+        <h3><i class="fas fa-list"></i> Доступные комнаты</h3>
+        <div id="roomsContainer" class="rooms-container">
+            <div class="loading">Загрузка комнат...</div>
+        </div>
+    </div>
+
+    <!-- Модальные окна -->
+    <div id="createRoomModal" class="modal">
+        <div class="modal-content">
+            <div style="padding: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3 style="margin: 0;"><i class="fas fa-plus"></i> Создать комнату</h3>
+                    <button class="close" style="background: none; border: none; color: white; font-size: 24px; cursor: pointer;">&times;</button>
+                </div>
+                <form id="createRoomForm">
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; color: rgba(255,255,255,0.8);">Название комнаты:</label>
+                        <input type="text" id="roomName" required placeholder="Например: Рейд на мифик" style="width: 100%; padding: 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white;">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; color: rgba(255,255,255,0.8);">Игра:</label>
+                        <select id="roomGame" required style="width: 100%; padding: 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white;">
+                            <option value="">Выберите игру</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 5px; color: rgba(255,255,255,0.8);">Макс. игроков:</label>
+                        <select id="maxPlayers" style="width: 100%; padding: 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white;">
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4" selected>4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn-primary" style="width: 100%;">
+                        <i class="fas fa-check"></i> Создать комнату
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="roomChatModal" class="modal">
+        <div class="modal-content room-chat-modal">
+            <div class="chat-header">
+                <h4 id="roomChatTitle">Чат комнаты</h4>
+                <button class="close" style="background: none; border: none; color: white; font-size: 24px; cursor: pointer;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="chat-tabs">
+                <button class="chat-tab active" data-tab="chat">
+                    <i class="fas fa-comment"></i> Чат
+                </button>
+                <button class="chat-tab" data-tab="players">
+                    <i class="fas fa-users"></i> Участники
+                </button>
+            </div>
+
+            <div id="chatContent" class="chat-content" style="display: flex; flex-direction: column; height: 100%;">
+                <div id="roomChatMessages" class="room-chat-messages">
+                    <div class="no-messages">Нет сообщений</div>
+                </div>
+                <div class="room-chat-input">
+                    <input type="text" id="roomMessageInput" placeholder="Напишите сообщение..." class="chat-input-field">
+                    <button id="sendRoomMessageBtn" class="btn-primary" style="padding: 10px 20px;">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div id="playersContent" class="players-content" style="display: none;">
+                <div id="roomPlayersList" class="room-players-list">
+                    <div class="loading-players">Загрузка участников...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<footer class="footer">
+    <p>© 2026 Squad Finder. Все права защищены.</p>
+    <p style="margin-top: 10px;">
+        <a href="/privacy.html" style="color: rgba(255,255,255,0.7); text-decoration: none; margin: 0 10px;">
+            <i class="fas fa-shield-alt"></i> Политика конфиденциальности
+        </a>
+    </p>
+</footer>
+<!-- ПРАВИЛЬНЫЙ ПОРЯДОК СКРИПТОВ -->
+<script src="/js/dialog.js"></script>
+<script src="/js/app-state-manager.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="/js/chat.js"></script>
+<script src="/js/rooms.js"></script>
+<!--<script src="/js/voice-controller.js"></script>-->
+<!--<script src="https://cdn.jsdelivr.net/npm/livekit-client@1/dist/livekit-client.umd.min.js"></script>-->
+</body>
+</html>

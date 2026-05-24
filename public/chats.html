@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Система комнат и чата</title>
+    <link rel="stylesheet" href="/css/chat.css">
+</head>
+<body>
+
+<div class="container">
+    <div class="rooms-section">
+        <h2>Комнаты</h2>
+        <div id="rooms-container">
+            <!-- Комнаты будут добавляться здесь -->
+        </div>
+        <button id="create-room-btn" class="create-room-btn">Создать комнату</button>
+    </div>
+
+    <div class="chat-section">
+        <div class="chat-header">
+            <h2 id="current-room">Чат не выбран</h2>
+            <button id="leave-chat-btn" class="leave-btn" style="display: none;">Покинуть чат</button>
+        </div>
+        <div id="chat-messages" class="chat-messages">
+            <div class="empty-state">Выберите комнату для общения</div>
+        </div>
+        <div class="chat-input" style="display: none;">
+            <input type="text" id="message-input" placeholder="Введите сообщение...">
+            <button id="send-message-btn">Отправить</button>
+        </div>
+    </div>
+</div>
+
+<div id="notification" class="notification"></div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Элементы DOM
+        const roomsContainer = document.getElementById('rooms-container');
+        const createRoomBtn = document.getElementById('create-room-btn');
+        const chatMessages = document.getElementById('chat-messages');
+        const messageInput = document.getElementById('message-input');
+        const sendMessageBtn = document.getElementById('send-message-btn');
+        const currentRoomEl = document.getElementById('current-room');
+        const leaveChatBtn = document.getElementById('leave-chat-btn');
+        const chatInput = document.querySelector('.chat-input');
+        const notification = document.getElementById('notification');
+
+        // Состояние приложения
+        let currentUser = 'Пользователь_' + Math.floor(Math.random() * 1000);
+        let rooms = [];
+        let currentRoom = null;
+        let hasRoom = false;
+
+        // Инициализация
+        loadRooms();
+        updateCreateButton();
+
+        // Создание комнаты
+        createRoomBtn.addEventListener('click', function() {
+            if (hasRoom) {
+                showNotification('Вы уже создали комнату!', true);
+                return;
+            }
+
+            const roomName = prompt('Введите название комнаты:');
+            if (roomName && roomName.trim()) {
+                const newRoom = {
+                    id: Date.now(),
+                    name: roomName.trim(),
+                    creator: currentUser,
+                    players: [currentUser],
+                    status: 'Ожидание'
+                };
+
+                rooms.push(newRoom);
+                saveRooms();
+                renderRooms();
+                hasRoom = true;
+                updateCreateButton();
+                joinRoom(newRoom.id);
+                showNotification('Комната создана!');
+            }
+        });
+
+        // Отправка сообщения
+        sendMessageBtn.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Покинуть чат
+        leaveChatBtn.addEventListener('click', function() {
+            if (currentRoom) {
+                leaveRoom(currentRoom.id);
+            }
+        });
+
+        // Функция отправки сообщения
+        function sendMessage() {
+            const messageText = messageInput.value.trim();
+            if (!messageText || !currentRoom) return;
+
+            // Добавляем сообщение в чат
+            addMessageToChat(currentUser, messageText, true);
+
+            // Очищаем поле ввода
+            messageInput.value = '';
+
+            // Сохраняем сообщение в комнату
+            if (!currentRoom.messages) {
+                currentRoom.messages = [];
+            }
+
+            currentRoom.messages.push({
+                sender: currentUser,
+                text: messageText,
+                time: new Date().toLocaleTimeString()
+            });
+
+            saveRooms();
+        }
+
+        // Функция добавления сообщения в чат
+        function addMessageToChat(sender, text, isMyMessage = false) {
+            // Убираем состояние "пусто"
+            const emptyState = chatMessages.querySelector('.empty-state');
+            if (emptyState) {
+                emptyState.remove();
+            }
+
+            const messageEl = document.createElement('div');
+            messageEl.classList.add('message');
+            messageEl.classList.add(isMyMessage ? 'my-message' : 'other-message');
+
+            const senderEl = document.createElement('div');
+            senderEl.classList.add('message-sender');
+            senderEl.textContent = sender;
+
+            const textEl = document.createElement('div');
+            textEl.textContent = text;
+
+            messageEl.appendChild(senderEl);
+            messageEl.appendChild(textEl);
+            chatMessages.appendChild(messageEl);
+
+            // Прокручиваем вниз
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Функция присоединения к комнате
+        function joinRoom(roomId) {
+            const room = rooms.find(r => r.id === roomId);
+            if (!room) return;
+
+            // Проверяем, не присоединены ли мы уже
+            if (room.players.includes(currentUser)) {
+                // Уже в комнате
+                currentRoom = room;
+                updateChatUI();
+                loadRoomMessages();
+                showNotification(`Вы в комнате "${room.name}"`);
+                return;
+            }
+
+            // Добавляем пользователя в комнату
+            room.players.push(currentUser);
+            room.status = room.players.length >= 4 ? 'В игре' : 'Ожидание';
+
+            saveRooms();
+            renderRooms();
+
+            currentRoom = room;
+            updateChatUI();
+            loadRoomMessages();
+
+            showNotification(`Вы присоединились к комнате "${room.name}"`);
+        }
+
+        // Функция выхода из комнаты
+        function leaveRoom(roomId) {
+            const room = rooms.find(r => r.id === roomId);
+            if (!room || !room.players.includes(currentUser)) return;
+
+            // Удаляем пользователя из комнаты
+            room.players = room.players.filter(player => player !== currentUser);
+
+            // Если комната пуста, удаляем её
+            if (room.players.length === 0) {
+                rooms = rooms.filter(r => r.id !== roomId);
+                if (room.creator === currentUser) {
+                    hasRoom = false;
+                    updateCreateButton();
+                }
+            } else {
+                // Обновляем статус
+                room.status = 'Ожидание';
+
+                // Если создатель вышел, назначаем нового
+                if (room.creator === currentUser) {
+                    room.creator = room.players[0];
+                    hasRoom = false;
+                    updateCreateButton();
+                }
+            }
+
+            saveRooms();
+            renderRooms();
+
+            // Сбрасываем текущую комнату
+            currentRoom = null;
+            updateChatUI();
+
+            showNotification('Вы вышли из комнаты');
+        }
+
+        // Функция удаления комнаты
+        function deleteRoom(roomId) {
+            const room = rooms.find(r => r.id === roomId);
+            if (!room || room.creator !== currentUser) return;
+
+            rooms = rooms.filter(r => r.id !== roomId);
+            saveRooms();
+            renderRooms();
+
+            if (currentRoom && currentRoom.id === roomId) {
+                currentRoom = null;
+                updateChatUI();
+            }
+
+            hasRoom = false;
+            updateCreateButton();
+            showNotification('Комната удалена');
+        }
+
+        // Функция загрузки сообщений комнаты
+        function loadRoomMessages() {
+            // Очищаем чат
+            chatMessages.innerHTML = '';
+
+            if (!currentRoom || !currentRoom.messages) {
+                const emptyState = document.createElement('div');
+                emptyState.classList.add('empty-state');
+                emptyState.textContent = 'Нет сообщений';
+                chatMessages.appendChild(emptyState);
+                return;
+            }
+
+            // Загружаем сообщения
+            currentRoom.messages.forEach(message => {
+                const isMyMessage = message.sender === currentUser;
+                addMessageToChat(message.sender, message.text, isMyMessage);
+            });
+        }
+
+        // Функция обновления интерфейса чата
+        function updateChatUI() {
+            if (currentRoom) {
+                currentRoomEl.textContent = `Чат: ${currentRoom.name}`;
+                leaveChatBtn.style.display = 'block';
+                chatInput.style.display = 'flex';
+                messageInput.focus();
+            } else {
+                currentRoomEl.textContent = 'Чат не выбран';
+                leaveChatBtn.style.display = 'none';
+                chatInput.style.display = 'none';
+                chatMessages.innerHTML = '<div class="empty-state">Выберите комнату для общения</div>';
+            }
+        }
+
+        // Функция отрисовки комнат
+        function renderRooms() {
+            roomsContainer.innerHTML = '';
+
+            if (rooms.length === 0) {
+                roomsContainer.innerHTML = '<div class="empty-state">Нет активных комнат</div>';
+                return;
+            }
+
+            rooms.forEach(room => {
+                const roomEl = document.createElement('div');
+                roomEl.classList.add('room');
+
+                const isCreator = room.creator === currentUser;
+                const isInRoom = room.players.includes(currentUser);
+
+                roomEl.innerHTML = `
+                        <h3>${room.name}</h3>
+                        <p>${room.players.length}/4 игроков</p>
+                        <p>Создатель: ${room.creator}</p>
+                        <p>Статус: ${room.status}</p>
+                        <div class="room-actions">
+                            ${isCreator ?
+                    `<button class="delete-btn" data-room-id="${room.id}">Удалить</button>` :
+                    ''
+                }
+                            ${isInRoom ?
+                    `<button class="leave-btn" data-room-id="${room.id}">Выйти</button>` :
+                    `<button class="join-btn" data-room-id="${room.id}">Присоединиться</button>`
+                }
+                        </div>
+                    `;
+
+                roomsContainer.appendChild(roomEl);
+            });
+
+            // Добавляем обработчики событий для кнопок
+            document.querySelectorAll('.join-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const roomId = parseInt(this.getAttribute('data-room-id'));
+                    joinRoom(roomId);
+                });
+            });
+
+            document.querySelectorAll('.leave-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const roomId = parseInt(this.getAttribute('data-room-id'));
+                    leaveRoom(roomId);
+                });
+            });
+
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const roomId = parseInt(this.getAttribute('data-room-id'));
+                    if (confirm('Вы уверены, что хотите удалить комнату?')) {
+                        deleteRoom(roomId);
+                    }
+                });
+            });
+        }
+
+        // Функция сохранения комнат в localStorage
+        function saveRooms() {
+            localStorage.setItem('chatRooms', JSON.stringify(rooms));
+            localStorage.setItem('userRoom', hasRoom ? currentUser : '');
+        }
+
+        // Функция загрузки комнат из localStorage
+        function loadRooms() {
+            const savedRooms = localStorage.getItem('chatRooms');
+            if (savedRooms) {
+                rooms = JSON.parse(savedRooms);
+            }
+
+            const userRoom = localStorage.getItem('userRoom');
+            hasRoom = userRoom === currentUser;
+
+            renderRooms();
+        }
+
+        // Функция обновления состояния кнопки создания комнаты
+        function updateCreateButton() {
+            createRoomBtn.disabled = hasRoom;
+            createRoomBtn.textContent = hasRoom ? 'Вы уже создали комнату' : 'Создать комнату';
+        }
+
+        // Функция показа уведомлений
+        function showNotification(message, isError = false) {
+            notification.textContent = message;
+            notification.classList.toggle('error', isError);
+            notification.classList.add('show');
+
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+    });
+    <script src="/js/chat.js"></script>
+    <script src="/js/app-state-manager.js"></script>
+    <script src="/js/dialog.js"></script>
+<script src="/js/voice-controller.js"></script>
+</script>
+<footer class="footer">
+    <p>© 2025 Squad Finder. Все права защищены.</p>
+    <p style="margin-top: 10px;">
+        <a href="/privacy.html" style="color: rgba(255,255,255,0.7); text-decoration: none; margin: 0 10px;">
+            <i class="fas fa-shield-alt"></i> Политика конфиденциальности
+        </a>
+    </p>
+</footer>
+</body>
+</html>

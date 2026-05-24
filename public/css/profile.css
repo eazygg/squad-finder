@@ -1,0 +1,698 @@
+/* public/css/profile.css - Обновленная версия */
+
+/* Хедер профиля */
+.profile-header {
+    background: linear-gradient(135deg, #313d75 0%, #4c3665 100%);
+    color: white;
+    padding: 20px 0;
+    margin-bottom: 30px;
+    border-radius: 0 0 20px 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.header-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.header-content h1 {
+    margin: 0;
+    font-size: 1.8rem;
+    color: #fff;
+}
+
+.header-content h1 i {
+    color: #3b82f6;
+}
+
+.profile-nav {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.nav-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    color: white;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.nav-link:hover {
+    background: rgba(59, 130, 246, 0.2);
+}
+
+/* Основной контент */
+.profile-content {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+/* Карточки */
+.profile-card {
+    background: linear-gradient(135deg, #1e1e32, #16162a);
+    border-radius: 20px;
+    padding: 25px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+}
+
+.profile-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(108, 92, 231, 0.3);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+.profile-card h3 {
+    color: #fff;
+    font-size: 1.3rem;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.profile-card h3 i {
+    color: #6c5ce7;
+}
+
+/* Информация о пользователе */
+.profile-info {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+/* Аватар */
+.avatar-section {
+    text-align: center;
+}
+
+.avatar-container {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 15px;
+}
+
+.avatar-image {
+    border-color: rgba(59, 130, 246, 0.3);
+}
+
+
+.avatar-image:hover {
+    border-color: #3b82f6;
+}
+
+.avatar-placeholder {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+}
+
+.avatar-upload-btn {
+    margin-top: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+}
+
+.avatar-upload-btn:hover {
+    background: rgba(108, 92, 231, 0.6);
+    transform: translateY(-2px);
+}
+
+/* Детали пользователя */
+.user-details h2 {
+    color: #fff;
+    margin: 0 0 5px 0;
+    font-size: 1.8rem;
+}
+
+.user-email {
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0 0 10px 0;
+}
+
+.member-since {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.9em;
+    margin: 0;
+}
+
+/* Черты личности */
+.traits-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.trait-item {
+    border-left: 3px solid #3b82f6;
+}
+
+.trait-item:hover {
+    background: rgba(59, 130, 246, 0.1);
+}
+
+.trait-name {
+    font-weight: bold;
+    color: #fff;
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+}
+
+.trait-score {
+    color: #3b82f6;
+}
+
+.trait-description {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.8em;
+    margin-top: 5px;
+}
+
+/* Тест не пройден */
+.test-not-completed {
+    text-align: center;
+    padding: 30px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+}
+
+.test-not-completed p {
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 15px;
+}
+
+/* Игры */
+.games-selection {
+    margin-top: 10px;
+}
+
+.search-container {
+    position: relative;
+    margin-bottom: 15px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 12px 15px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 25px;
+    color: white;
+    font-size: 14px;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #6c5ce7;
+}
+
+.games-list-container {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.2);
+    margin-bottom: 20px;
+}
+
+.games-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 10px;
+}
+
+.game-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.game-item:hover {
+    background: rgba(59, 130, 246, 0.1);
+}
+
+.game-item.selected {
+    border-left: 3px solid #3b82f6;
+    background: rgba(59, 130, 246, 0.15);
+}
+
+.game-checkbox {
+    margin-right: 10px;
+    cursor: pointer;
+    width: 18px;
+    height: 18px;
+}
+
+.game-item-label {
+    flex: 1;
+    cursor: pointer;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 14px;
+}
+
+.selected-games {
+    margin: 15px 0;
+    padding: 15px;
+    background: rgba(108, 92, 231, 0.1);
+    border-radius: 12px;
+}
+
+.selected-games h4 {
+    color: #fff;
+    margin-bottom: 10px;
+}
+
+.selected-games-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.selected-game-tag {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+}
+
+.remove-btn {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 0 4px;
+    border-radius: 50%;
+}
+
+.remove-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Сохраненные игры (плашки) */
+.saved-games-container {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.profile-card#savedGamesCard {
+    display: block !important;
+}
+
+.game-card {
+    background: linear-gradient(135deg, #1e1e32, #16162a);
+    border-radius: 12px;
+    padding: 15px;
+    text-align: center;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    display: block !important;
+}
+
+.game-card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(108, 92, 231, 0.5);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+.game-card .game-icon {
+    font-size: 32px;
+    margin-bottom: 10px;
+    display: block;
+}
+
+.game-card h4 {
+    margin: 0;
+    color: #fff;
+    font-size: 0.85rem;
+    word-break: break-word;
+}
+
+.game-icon.lol { color: #c8a2c8; }
+.game-icon.dota { color: #ff4444; }
+.game-icon.csgo { color: #ff9900; }
+.game-icon.valorant { color: #fd4556; }
+.game-icon.minecraft { color: #44aa44; }
+.game-icon.fortnite { color: #4c6aff; }
+.game-icon.wow { color: #00aaff; }
+
+/* История тестов */
+.test-history-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.test-history-item {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+}
+
+.test-history-item:hover {
+    background: rgba(108, 92, 231, 0.1);
+    transform: translateX(5px);
+}
+
+.test-history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.test-number {
+    color: #3b82f6;
+}
+
+.test-date {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.8rem;
+}
+
+.test-history-scores {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+}
+
+.score-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 10px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+}
+
+.score-label {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.8rem;
+}
+
+.score-value {
+    color: #3b82f6;
+}
+
+.test-count-badge {
+    color: #3b82f6;
+    background: rgba(59, 130, 246, 0.1);
+}
+
+/* Кнопки */
+.btn-primary {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+}
+
+.btn-primary:hover {
+    box-shadow: 0 5px 15px rgba(59, 130, 246, 0.3);
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 13px;
+}
+
+.retake-test-btn {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.retake-test-btn:hover {
+    box-shadow: 0 5px 15px rgba(255, 152, 0, 0.3);
+}
+
+/* Чужой профиль */
+.other-user-profile {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.profile-view-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.view-profile-btn {
+    padding: 12px 24px;
+    font-size: 1rem;
+}
+
+.private-chat-btn {
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+}
+
+.private-chat-btn:hover {
+    box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+}
+
+/* Отключаем редактирование в чужом профиле */
+.other-user-profile input,
+.other-user-profile select,
+.other-user-profile .avatar-upload-btn,
+.other-user-profile #saveGamesBtn,
+.other-user-profile .btn-primary[onclick*="test.html"] {
+    display: none !important;
+}
+
+.other-user-profile .games-selection,
+.other-user-profile .search-container {
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.other-user-profile .game-checkbox {
+    pointer-events: none;
+}
+
+/* Совместимость */
+.compatibility-result {
+    background: rgba(108, 92, 231, 0.1);
+    border-radius: 15px;
+    padding: 20px;
+    text-align: center;
+    border: 1px solid rgba(108, 92, 231, 0.3);
+}
+
+.compatibility-score {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.compatibility-bar {
+    height: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+    overflow: hidden;
+    margin: 15px 0;
+}
+
+.compatibility-fill {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+}
+
+/* Ошибка и загрузка */
+.error-container {
+    text-align: center;
+    padding: 50px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+}
+
+.error-container i {
+    font-size: 48px;
+    color: #e74c3c;
+    margin-bottom: 20px;
+}
+
+.error-container h3 {
+    color: #fff;
+    margin-bottom: 20px;
+}
+
+.loading {
+    text-align: center;
+    padding: 40px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* Анимации */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.profile-card {
+    animation: fadeInUp 0.4s ease forwards;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .profile-info {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .header-content {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .profile-nav {
+        justify-content: center;
+    }
+
+    .traits-grid {
+        grid-template-columns: 1fr;
+    }
+
+
+
+    .test-history-scores {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+/* Аватарки - исправленные стили */
+.avatar-section {
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.avatar-container {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 15px;
+}
+
+.avatar-image {
+    width: 120px !important;
+    height: 120px !important;
+    min-width: 120px;
+    min-height: 120px;
+    max-width: 120px;
+    max-height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid rgba(59, 130, 246, 0.3);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
+    display: block;
+}
+
+.avatar-image:hover {
+    transform: scale(1.05);
+    border-color: #3b82f6;
+}
+
+.avatar-placeholder {
+    width: 120px;
+    height: 120px;
+    min-width: 120px;
+    min-height: 120px;
+    max-width: 120px;
+    max-height: 120px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 48px;
+    border: 3px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.avatar-upload-btn {
+    margin-top: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+}
+
+.avatar-upload-btn:hover {
+    background: rgba(59, 130, 246, 0.2);
+    color: var(--text-primary);
+    transform: translateY(-2px);
+}

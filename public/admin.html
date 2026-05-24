@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Админ-панель - Squad Finder</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+
+<div class="admin-container">
+    <!-- Сайдбар -->
+    <div class="admin-sidebar">
+        <h2>
+            <i class="fas fa-cog"></i>
+            <span>Админ-панель</span>
+        </h2>
+        <nav class="admin-nav">
+            <div class="nav-section">
+                <h3>Навигация</h3>
+                <a href="/profile.html" class="nav-link">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Назад в профиль</span>
+                </a>
+            </div>
+            <div class="nav-section">
+                <h3>Статистика</h3>
+                <a href="#" class="nav-link" onclick="showSection('dashboard')">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Обзор</span>
+                </a>
+            </div>
+            <div class="nav-section">
+                <h3>Управление</h3>
+                <a href="#" class="nav-link" onclick="showSection('users')">
+                    <i class="fas fa-users"></i>
+                    <span>Пользователи</span>
+                </a>
+                <a href="#" class="nav-link" onclick="showSection('rooms')">
+                    <i class="fas fa-door-open"></i>
+                    <span>Комнаты</span>
+                </a>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Основной контент -->
+    <div class="admin-content">
+        <div id="dashboard-section" class="admin-section">
+            <h2>
+                <i class="fas fa-chart-bar"></i>
+                Обзор системы
+            </h2>
+            <div id="statsContainer" class="stats-grid">
+                <div class="loading">
+                    <i class="fas fa-spinner fa-spin"></i> Загрузка статистики...
+                </div>
+            </div>
+        </div>
+
+        <div id="users-section" class="admin-section" style="display: none;">
+            <h2>
+                <i class="fas fa-users"></i>
+                Управление пользователями
+            </h2>
+            <div id="usersContainer" class="users-list">
+                <div class="loading">
+                    <i class="fas fa-spinner fa-spin"></i> Загрузка пользователей...
+                </div>
+            </div>
+        </div>
+
+        <div id="rooms-section" class="admin-section" style="display: none;">
+            <h2>
+                <i class="fas fa-door-open"></i>
+                Управление комнатами
+            </h2>
+            <div id="roomsContainer" class="rooms-list">
+                <div class="loading">
+                    <i class="fas fa-spinner fa-spin"></i> Загрузка комнат...
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="/js/chat.js"></script>
+<script src="/js/dialog.js"></script>
+<script src="/js/admin.js"></script>
+<script src="/js/voice-controller.js"></script>
+</body>
+</html>

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Поиск тиммейтов - Squad Finder</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/search.css">
+</head>
+<body>
+
+<div class="container">
+    <header class="search-header">
+        <div class="header-content">
+            <h1><i class="fas fa-search"></i> Поиск тиммейтов</h1>
+            <nav class="search-nav">
+                <a href="/profile.html" class="nav-link">
+                    <i class="fas fa-user"></i> Мой профиль
+                </a>
+                <button class="btn btn-primary" onclick="privateChat.openChat()">
+                    <i class="fas fa-comments"></i> Сообщения
+                </button>
+                <button id="logoutBtn" class="btn btn-secondary">
+                    <i class="fas fa-sign-out-alt"></i> Выйти
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <div class="search-filters">
+        <div class="filter-card">
+            <h3><i class="fas fa-filter"></i> Фильтры поиска</h3>
+
+            <div class="filter-group">
+                <label for="gameFilter">Игра:</label>
+                <select id="gameFilter" class="filter-select">
+                    <option value="">Все игры</option>
+                    <!-- Игры будут загружены через JS -->
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="compatibilityFilter">Совместимость:</label>
+                <select id="compatibilityFilter" class="filter-select">
+                    <option value="0">Любая</option>
+                    <option value="70">70%+</option>
+                    <option value="80">80%+</option>
+                    <option value="90">90%+</option>
+                </select>
+            </div>
+
+            <button id="searchBtn" class="btn btn-primary">
+                <i class="fas fa-search"></i> Найти
+            </button>
+        </div>
+    </div>
+
+    <div class="search-results">
+        <div id="resultsContainer" class="results-grid">
+            <div class="loading">Загрузка пользователей...</div>
+        </div>
+    </div>
+
+    <!-- Контейнер чата -->
+    <div id="chatContainer" class="chat-container" style="display: none;">
+        <div class="chat-header">
+            <h4 id="chatTitle">Чат</h4>
+            <button class="btn btn-sm btn-secondary" onclick="closeChat()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div id="chatMessages" class="chat-messages"></div>
+
+        <div class="chat-input">
+            <input type="text" id="messageInput" placeholder="Введите сообщение..." class="chat-input-field">
+            <button id="sendMessageBtn" class="btn btn-primary">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+</div>
+<footer class="footer">
+    <p>© 2026 Squad Finder. Все права защищены.</p>
+    <p style="margin-top: 10px;">
+        <a href="/privacy.html" style="color: rgba(255,255,255,0.7); text-decoration: none; margin: 0 10px;">
+            <i class="fas fa-shield-alt"></i> Политика конфиденциальности
+        </a>
+    </p>
+</footer>
+<script src="/js/chat.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="/js/search.js"></script>
+<script src="/js/dialog.js"></script>
+<script src="/js/voice-controller.js"></script>
+</body>
+</html>

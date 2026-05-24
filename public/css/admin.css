@@ -1,0 +1,214 @@
+/* public/css/admin.css */
+.admin-container {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Сайдбар */
+.admin-sidebar {
+    width: 280px;
+    background: linear-gradient(180deg, #1a1a2e 0%, #0f0f1a 100%);
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 30px 20px;
+    position: fixed;
+    height: 100vh;
+    overflow-y: auto;
+}
+
+.admin-sidebar h2 {
+    color: #fff;
+    font-size: 1.5rem;
+    margin-bottom: 30px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.admin-sidebar h2 i {
+    color: #6c5ce7;
+}
+
+.admin-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.nav-section h3 {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 15px;
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    margin-bottom: 5px;
+}
+
+.nav-link i {
+    width: 20px;
+}
+
+.nav-link:hover {
+    background: rgba(108, 92, 231, 0.2);
+    color: #fff;
+    transform: translateX(5px);
+}
+
+/* Основной контент */
+.admin-content {
+    flex: 1;
+    margin-left: 280px;
+    padding: 30px;
+    background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
+    min-height: 100vh;
+}
+
+.admin-section {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 25px;
+    margin-bottom: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.admin-section h2 {
+    color: #fff;
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.admin-section h2 i {
+    color: #6c5ce7;
+}
+
+/* Статистика */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+.stat-card {
+    background: linear-gradient(135deg, #1e1e32, #16162a);
+    padding: 25px;
+    border-radius: 15px;
+    text-align: center;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(108, 92, 231, 0.5);
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: bold;
+    background: linear-gradient(135deg, #6c5ce7, #a363d9);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    margin-bottom: 10px;
+}
+
+.stat-card div:last-child {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Таблицы */
+.users-list, .rooms-list {
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.user-row, .room-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+}
+
+.user-row:hover, .room-row:hover {
+    background: rgba(108, 92, 231, 0.1);
+}
+
+.role-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: bold;
+}
+
+.role-admin {
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    color: white;
+}
+
+.role-user {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: white;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .admin-sidebar {
+        width: 80px;
+        padding: 20px 10px;
+    }
+
+    .admin-sidebar h2 span,
+    .nav-link span {
+        display: none;
+    }
+
+    .admin-sidebar h2 i {
+        font-size: 1.5rem;
+    }
+
+    .nav-link {
+        justify-content: center;
+        padding: 10px;
+    }
+
+    .nav-link i {
+        margin: 0;
+        font-size: 1.2rem;
+    }
+
+    .admin-content {
+        margin-left: 80px;
+        padding: 20px;
+    }
+
+    .user-row, .room-row {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+
+    .action-buttons {
+        justify-content: center;
+    }
+}

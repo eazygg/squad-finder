@@ -1,0 +1,262 @@
+/* public/css/index.css - Стили для главной страницы */
+
+/* Hero секция */
+.hero-section {
+    text-align: center;
+    padding: 60px 20px;
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border-radius: 20px;
+    margin-bottom: 40px;
+    border: 1px solid var(--border);
+}
+
+.hero-section h1 {
+    font-size: 3rem;
+    margin-bottom: 20px;
+    background: linear-gradient(135deg, #60a5fa, #3b82f6);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.hero-section p {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    margin-bottom: 30px;
+}
+
+/* Кнопки на главной */
+.auth-buttons {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin: 30px 0;
+}
+
+.btn-large {
+    padding: 14px 32px;
+    font-size: 1rem;
+}
+
+/* Карточки преимуществ */
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 25px;
+    margin: 40px 0;
+}
+
+.feature-card {
+    background: var(--gradient-card);
+    border-radius: 16px;
+    padding: 30px 25px;
+    text-align: center;
+    border: 1px solid var(--border);
+    transition: all 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--primary);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+.feature-card i {
+    font-size: 48px;
+    color: var(--primary);
+    margin-bottom: 20px;
+}
+
+.feature-card h3 {
+    color: var(--text-primary);
+    margin-bottom: 12px;
+    font-size: 1.3rem;
+}
+
+.feature-card p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+/* Статус карточка */
+.status-card {
+    background: var(--gradient-card);
+    border-radius: 16px;
+    padding: 25px;
+    text-align: center;
+    margin-top: 30px;
+    border: 1px solid var(--border);
+}
+
+.status-card .status {
+    margin: 0;
+}
+
+/* API Endpoints */
+.api-endpoints {
+    margin-top: 30px;
+}
+
+.endpoint-list {
+    background: var(--bg-input);
+    border-radius: 12px;
+    padding: 15px;
+    margin-top: 15px;
+    text-align: left;
+}
+
+.endpoint-item {
+    padding: 12px;
+    border-bottom: 1px solid var(--border);
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.endpoint-item:last-child {
+    border-bottom: none;
+}
+
+.endpoint-method {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: bold;
+    font-family: inherit;
+}
+
+.method-get {
+    background: #10b981;
+    color: white;
+}
+
+.method-post {
+    background: #3b82f6;
+    color: white;
+}
+
+.method-put {
+    background: #f59e0b;
+    color: white;
+}
+
+.method-delete {
+    background: #ef4444;
+    color: white;
+}
+
+.endpoint-item code {
+    color: var(--primary-light);
+    background: rgba(59, 130, 246, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.endpoint-desc {
+    color: var(--text-muted);
+    font-size: 12px;
+    font-family: inherit;
+    margin-left: auto;
+}
+
+/* Вопросы теста */
+.questions-container {
+    margin-top: 20px;
+    max-height: 400px;
+    overflow-y: auto;
+    text-align: left;
+}
+
+.questions-container h3 {
+    margin-bottom: 15px;
+    color: var(--text-primary);
+}
+
+.question-item {
+    background: var(--bg-input);
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 10px;
+    border-left: 3px solid var(--primary);
+}
+
+.question-meta {
+    color: var(--text-muted);
+    font-size: 12px;
+    margin-bottom: 8px;
+}
+
+.question-text {
+    color: var(--text-secondary);
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+/* Скрытие элементов */
+.hidden {
+    display: none;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .hero-section {
+        padding: 40px 15px;
+    }
+
+    .hero-section h1 {
+        font-size: 2rem;
+    }
+
+    .hero-section p {
+        font-size: 1rem;
+    }
+
+    .auth-buttons {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .btn-large {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .features-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .feature-card {
+        padding: 20px;
+    }
+
+    .endpoint-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .endpoint-desc {
+        margin-left: 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-section h1 {
+        font-size: 1.5rem;
+    }
+
+    .feature-card i {
+        font-size: 36px;
+    }
+
+    .feature-card h3 {
+        font-size: 1.1rem;
+    }
+}

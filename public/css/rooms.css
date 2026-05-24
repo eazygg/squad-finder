@@ -1,0 +1,697 @@
+/* public/css/rooms.css - Полностью обновленная версия */
+
+/* Хедер */
+.rooms-header {
+    background: linear-gradient(135deg, #24294a 0%, #764ba2 100%);
+    color: white;
+    padding: 20px 0;
+    margin-bottom: 30px;
+    border-radius: 0 0 20px 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.header-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.header-content h1 {
+    margin: 0;
+    font-size: 1.8rem;
+    color: #fff;
+}
+
+.header-content h1 i {
+    margin-right: 10px;
+    color: #6c5ce7;
+}
+
+.rooms-nav {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.nav-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    color: white;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.nav-link:hover {
+    background: rgba(59, 130, 246, 0.2);
+}
+
+.nav-link i {
+    font-size: 16px;
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+}
+
+.btn-secondary:hover {
+    background: rgba(231, 76, 60, 0.8);
+    border-color: rgba(231, 76, 60, 0.8);
+    transform: translateY(-2px);
+}
+
+/* Действия с комнатами */
+.rooms-actions {
+    max-width: 1200px;
+    margin: 0 auto 30px;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+}
+
+.btn-primary:hover {
+    box-shadow: 0 5px 15px rgba(59, 130, 246, 0.3);
+}
+
+.filter-section {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.filter-select {
+    padding: 10px 15px;
+    background: #2d2d44;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    color: white;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.filter-select:focus {
+    border-color: #3b82f6;
+}
+
+/* Секции */
+.my-rooms-section,
+.rooms-list {
+    max-width: 1200px;
+    margin: 0 auto 40px;
+    padding: 0 20px;
+}
+
+.my-rooms-section h3,
+.rooms-list h3 {
+    color: #fff;
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Контейнер с комнатами */
+.rooms-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+}
+
+/* Карточка комнаты */
+.room-card {
+    background: linear-gradient(135deg, #1e1e32, #16162a);
+    border-radius: 15px;
+    padding: 20px;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.room-card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(108, 92, 231, 0.5);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+.room-card.my-room {
+    border-left: 4px solid #3b82f6;
+}
+
+.room-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.room-header h4 {
+    color: #fff;
+    font-size: 1.2rem;
+    margin: 0;
+}
+
+.room-status {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.room-status.waiting {
+    background: rgba(76, 175, 80, 0.2);
+    color: #4CAF50;
+}
+
+.room-status.in_game {
+    background: rgba(255, 152, 0, 0.2);
+    color: #ff9800;
+}
+
+.room-info {
+    margin-bottom: 15px;
+}
+
+.room-info p {
+    margin: 8px 0;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 14px;
+}
+
+.room-info p strong {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.room-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 13px;
+}
+
+.btn-warning {
+    background: rgba(255, 152, 0, 0.8);
+    color: white;
+}
+
+.btn-warning:hover {
+    background: #ff9800;
+}
+
+.btn-danger {
+    background: rgba(231, 76, 60, 0.8);
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #e74c3c;
+}
+
+.no-rooms {
+    text-align: center;
+    padding: 40px;
+    color: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+}
+
+/* Модальное окно */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    margin: 5% auto;
+    padding: 0;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 500px;
+    animation: slideIn 0.3s ease;
+}
+
+/* Чат модальное окно */
+.room-chat-modal {
+    max-width: 700px;
+    width: 90%;
+    height: 80vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Вкладки */
+.chat-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.chat-tab {
+    flex: 1;
+    padding: 12px;
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.6);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.chat-tab:hover {
+    background: rgba(59, 130, 246, 0.1);
+}
+
+.chat-tab.active {
+    color: #3b82f6;
+    border-bottom: 2px solid #3b82f6;
+}
+
+/* Контент чата и участников */
+.chat-content, .players-content {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.room-chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Сообщения */
+.message {
+    max-width: 70%;
+    padding: 8px 12px;
+    border-radius: 12px;
+    font-size: 14px;
+}
+
+.message.my-message {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+}
+
+.message.other-message {
+    align-self: flex-start;
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.message-sender {
+    font-size: 11px;
+    opacity: 0.7;
+    margin-bottom: 4px;
+}
+
+.message-time {
+    font-size: 10px;
+    opacity: 0.5;
+    margin-top: 4px;
+    text-align: right;
+}
+
+/* Поле ввода */
+.room-chat-input {
+    display: flex;
+    gap: 10px;
+    padding: 15px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.chat-input-field {
+    flex: 1;
+    padding: 10px 15px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 25px;
+    color: white;
+    font-size: 14px;
+}
+
+.chat-input-field:focus {
+    outline: none;
+    border-color: #6c5ce7;
+}
+
+.no-messages {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.5);
+    padding: 20px;
+}
+
+/* Заголовок чата */
+.chat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.chat-header h4 {
+    margin: 0;
+    color: #fff;
+}
+
+/* Список участников */
+.players-content {
+    overflow-y: auto;
+    padding: 15px;
+}
+
+.room-players-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Карточка участника - компактная */
+.player-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.player-card:hover {
+    background: rgba(108, 92, 231, 0.15);
+    transform: translateX(5px);
+}
+
+/* Компактная аватарка 40x40 */
+.player-avatar {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
+    max-width: 40px;
+    max-height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: linear-gradient(135deg, #6c5ce7, #a363d9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.player-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-placeholder-small {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: white;
+    flex-shrink: 0;
+}
+
+.player-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.player-name {
+    font-weight: bold;
+    color: white;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-size: 14px;
+}
+
+.creator-badge {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: #fff;
+}
+
+.player-test-status {
+    font-size: 10px;
+    margin-bottom: 4px;
+}
+
+.test-passed {
+    color: #4CAF50;
+}
+
+.test-not-passed {
+    color: #ff9800;
+}
+
+.player-traits-preview {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.trait-preview {
+    background: rgba(108, 92, 231, 0.2);
+    padding: 2px 5px;
+    border-radius: 8px;
+    font-size: 9px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.player-actions {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.btn-view-profile, .btn-send-message {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: white;
+    font-size: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.btn-view-profile:hover {
+    background: #3b82f6;
+}
+
+.btn-send-message:hover {
+    background: #10b981;
+}
+
+.loading-players, .no-players, .error-players {
+    text-align: center;
+    padding: 30px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* Скроллбары */
+.room-chat-messages::-webkit-scrollbar,
+.players-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.room-chat-messages::-webkit-scrollbar-track,
+.players-content::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+}
+
+.room-chat-messages::-webkit-scrollbar-thumb,
+.players-content::-webkit-scrollbar-thumb {
+    background: rgba(108, 92, 231, 0.5);
+    border-radius: 10px;
+}
+
+/* Анимации */
+@keyframes slideIn {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .header-content {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .rooms-nav {
+        justify-content: center;
+    }
+
+    .rooms-actions {
+        flex-direction: column;
+    }
+
+    .filter-section {
+        width: 100%;
+    }
+
+    .filter-select {
+        flex: 1;
+    }
+
+    .rooms-container {
+        grid-template-columns: 1fr;
+    }
+
+    .room-chat-modal {
+        width: 95%;
+        height: 85vh;
+    }
+
+    .message {
+        max-width: 85%;
+    }
+}
+
+@media (max-width: 480px) {
+    .room-chat-modal {
+        width: 100%;
+        height: 100vh;
+        border-radius: 0;
+    }
+
+    .player-card {
+        flex-wrap: wrap;
+    }
+
+    .player-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+}
+.btn-voice-chat {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+}
+
+.btn-voice-chat:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
+}
+
+.btn-voice-chat.active {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+/* Добавьте в конец файла rooms.css */
+
+.btn-voice-chat {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+}
+
+.btn-voice-chat:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
+}
+
+.loading-players {
+    text-align: center;
+    padding: 20px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.error-players {
+    text-align: center;
+    padding: 20px;
+    color: #ef4444;
+}

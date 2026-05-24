@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Squad Finder - Поиск игровых сообществ</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/index.css">
+</head>
+<body>
+<div class="container">
+    <!-- Hero секция -->
+    <div class="hero-section">
+        <h1><i class="fas fa-users"></i> Squad Finder</h1>
+        <p>Платформа для поиска игровых сообществ на основе психологической совместимости</p>
+        <div class="auth-buttons">
+            <button id="loginBtn" class="btn btn-primary btn-large">
+                <i class="fas fa-sign-in-alt"></i> Войти
+            </button>
+            <button id="registerBtn" class="btn btn-secondary btn-large">
+                <i class="fas fa-user-plus"></i> Регистрация
+            </button>
+        </div>
+    </div>
+
+    <!-- Преимущества -->
+    <div class="features-grid">
+        <div class="feature-card">
+            <i class="fas fa-brain"></i>
+            <h3>Психологический тест</h3>
+            <p>Определите свой стиль игры и найдите идеальных тиммейтов</p>
+        </div>
+        <div class="feature-card">
+            <i class="fas fa-gamepad"></i>
+            <h3>100+ игр</h3>
+            <p>Выбирайте из популярных игр и находите единомышленников</p>
+        </div>
+        <div class="feature-card">
+            <i class="fas fa-comments"></i>
+            <h3>Умный подбор</h3>
+            <p>Алгоритм подбирает команду на основе ваших предпочтений</p>
+        </div>
+        <div class="feature-card">
+            <i class="fas fa-door-open"></i>
+            <h3>Игровые комнаты</h3>
+            <p>Создавайте комнаты и общайтесь с тиммейтами в реальном времени</p>
+        </div>
+        <div class="feature-card">
+            <i class="fas fa-chart-line"></i>
+            <h3>История тестов</h3>
+            <p>Отслеживайте свой прогресс и изменения в психологическом портрете</p>
+        </div>
+        <div class="feature-card">
+            <i class="fas fa-shield-alt"></i>
+            <h3>Безопасность</h3>
+            <p>Ваши данные защищены, общайтесь только с проверенными игроками</p>
+        </div>
+    </div>
+
+    <!-- Статус сервера -->
+    <div class="status-card">
+        <div id="status">Проверка подключения к серверу...</div>
+    </div>
+
+
+</div>
+
+<!-- Модальное окно входа -->
+<div id="loginModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2><i class="fas fa-sign-in-alt"></i> Вход</h2>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="loginEmail">Email:</label>
+                <input type="email" id="loginEmail" name="email" required placeholder="example@mail.com">
+            </div>
+            <div class="form-group">
+                <label for="loginPassword">Пароль:</label>
+                <input type="password" id="loginPassword" name="password" required placeholder="••••••">
+            </div>
+            <div style="text-align: center; margin-top: 15px;">
+                <a href="/forgot-password.html" style="color: #3b82f6; text-decoration: none; font-size: 14px;">
+                    Забыли пароль?
+                </a>
+            </div>
+            <br>
+            <button type="submit" class="btn btn-primary" style="width: 100%;">
+                <i class="fas fa-sign-in-alt"></i> Войти
+            </button>
+        </form>
+        <div id="loginMessage" class="message-error" style="display: none; margin-top: 15px;"></div>
+    </div>
+</div>
+
+<!-- Модальное окно регистрации -->
+<div id="registerModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2><i class="fas fa-user-plus"></i> Регистрация</h2>
+        <form id="registerForm">
+            <div class="form-group">
+                <label for="registerEmail">Email:</label>
+                <input type="email" id="registerEmail" name="email" required placeholder="example@mail.com">
+            </div>
+            <div class="form-group">
+                <label for="registerUsername">Имя пользователя:</label>
+                <input type="text" id="registerUsername" name="username" required placeholder="Ваш никнейм">
+            </div>
+            <div class="form-group">
+                <label for="registerPassword">Пароль:</label>
+                <input type="password" id="registerPassword" name="password" required placeholder="Минимум 6 символов">
+            </div>
+            <div class="form-group">
+                <label for="confirmPassword">Подтвердите пароль:</label>
+                <input type="password" id="confirmPassword" name="confirmPassword" required placeholder="Повторите пароль">
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%;">
+                <i class="fas fa-user-plus"></i> Зарегистрироваться
+            </button>
+        </form>
+        <div id="registerMessage" class="message-error" style="display: none; margin-top: 15px;"></div>
+    </div>
+</div>
+<footer class="footer">
+    <p>© 2026 Squad Finder. Все права защищены.</p>
+    <p style="margin-top: 10px;">
+        <a href="/privacy.html" style="color: rgba(255,255,255,0.7); text-decoration: none; margin: 0 10px;">
+            <i class="fas fa-shield-alt"></i> Политика конфиденциальности
+        </a>
+    </p>
+</footer>
+<script src="/js/chat.js"></script>
+<script src="/js/dialog.js"></script>
+<script src="/js/app-state-manager.js"></script>
+<script src="/js/app.js"></script>
+
+</body>
+</html>
