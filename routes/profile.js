@@ -1195,4 +1195,182 @@ router.post('/update-activity', authenticateToken, async (req, res) => {
     }
 });
 
+// Получить список диалогов текущего пользователя
+router.get('/dialogs', authenticateToken, async (req, res) => {
+    try {
+        const userId = req.user.userId;
+
+        const result = await pool.query(`
+            SELECT DISTINCT 
+                u.id as user_id,
+                u.username,
+                u.avatar_url,
+                u.last_login,
+                (
+                    SELECT COUNT(*) FROM private_messages 
+                    WHERE from_user_id = u.id AND to_user_id = $1 AND is_read = false
+                ) as unread_count,
+                (
+                    SELECT message FROM private_messages 
+                    WHERE (from_user_id = $1 AND to_user_id = u.id) 
+                       OR (from_user_id = u.id AND to_user_id = $1)
+                    ORDER BY created_at DESC 
+                    LIMIT 1
+                ) as last_message,
+                (
+                    SELECT created_at FROM private_messages 
+                    WHERE (from_user_id = $1 AND to_user_id = u.id) 
+                       OR (from_user_id = u.id AND to_user_id = $1)
+                    ORDER BY created_at DESC 
+                    LIMIT 1
+                ) as last_message_time
+            FROM users u
+            INNER JOIN private_messages pm ON (pm.from_user_id = u.id AND pm.to_user_id = $1)
+                                           OR (pm.to_user_id = u.id AND pm.from_user_id = $1)
+            WHERE u.id != $1
+            GROUP BY u.id, u.username, u.avatar_url, u.last_login
+            ORDER BY last_message_time DESC
+        `, [userId]);
+
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Error fetching dialogs:', error);
+        // Возвращаем пустой массив вместо ошибки
+        res.json([]);
+    }
+});
+
+
+
+// ==================== ЛИЧНЫЕ СООБЩЕНИЯ (ПРИВАТНЫЙ ЧАТ) ====================
+
+// 1. Получить список диалогов текущего пользователя
+router.get('/dialogs', authenticateToken, async (req, res) => {
+    try {
+        const userId = req.user.userId;
+
+        // Этот запрос получает всех пользователей, с которыми у текущего есть переписка,
+        // а также последнее сообщение и количество непрочитанных.
+        const result = await pool.query(`
+            SELECT DISTINCT 
+                u.id as user_id,
+                u.username,
+                u.avatar_url,
+                u.last_login,
+                (
+                    SELECT COUNT(*) FROM private_messages 
+                    WHERE from_user_id = u.id AND to_user_id = $1 AND is_read = false
+                ) as unread_count,
+                (
+                    SELECT message FROM private_messages 
+                    WHERE (from_user_id = $1 AND to_user_id = u.id) 
+                       OR (from_user_id = u.id AND to_user_id = $1)
+                    ORDER BY created_at DESC 
+                    LIMIT 1
+                ) as last_message,
+                (
+                    SELECT created_at FROM private_messages 
+                    WHERE (from_user_id = $1 AND to_user_id = u.id) 
+                       OR (from_user_id = u.id AND to_user_id = $1)
+                    ORDER BY created_at DESC 
+                    LIMIT 1
+                ) as last_message_time
+            FROM users u
+            INNER JOIN private_messages pm ON (pm.from_user_id = u.id AND pm.to_user_id = $1)
+                                           OR (pm.to_user_id = u.id AND pm.from_user_id = $1)
+            WHERE u.id != $1
+            GROUP BY u.id, u.username, u.avatar_url, u.last_login
+            ORDER BY last_message_time DESC
+        `, [userId]);
+
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Error fetching dialogs:', error);
+        res.status(500).json({ error: 'Ошибка загрузки списка диалогов' });
+    }
+});
+
+// 2. Получить историю переписки с конкретным пользователем
+router.get('/messages/:userId', authenticateToken, async (req, res) => {
+    try {
+        const currentUserId = req.user.userId;
+        const { userId } = req.params;
+
+        // Помечаем входящие сообщения как прочитанные
+        await pool.query(`
+            UPDATE private_messages 
+            SET is_read = true 
+            WHERE from_user_id = $1 AND to_user_id = $2
+        `, [userId, currentUserId]);
+
+        // Получаем историю сообщений между двумя пользователями
+        const result = await pool.query(`
+            SELECT 
+                pm.*,
+                u_from.username as from_username,
+                u_from.avatar_url as from_avatar,
+                u_to.username as to_username,
+                u_to.avatar_url as to_avatar
+            FROM private_messages pm
+            JOIN users u_from ON pm.from_user_id = u_from.id
+            JOIN users u_to ON pm.to_user_id = u_to.id
+            WHERE (pm.from_user_id = $1 AND pm.to_user_id = $2)
+               OR (pm.from_user_id = $2 AND pm.to_user_id = $1)
+            ORDER BY pm.created_at ASC
+            LIMIT 100
+        `, [currentUserId, userId]);
+
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Error fetching messages:', error);
+        res.status(500).json({ error: 'Ошибка загрузки сообщений' });
+    }
+});
+
+// 3. Отправить новое личное сообщение
+router.post('/send-message', authenticateToken, async (req, res) => {
+    try {
+        const fromUserId = req.user.userId;
+        const { toUserId, message } = req.body;
+
+        if (!toUserId || !message || message.trim() === '') {
+            return res.status(400).json({ error: 'Неверные данные' });
+        }
+
+        // Сохраняем сообщение в базу данных
+        const result = await pool.query(`
+            INSERT INTO private_messages (from_user_id, to_user_id, message)
+            VALUES ($1, $2, $3)
+            RETURNING id, created_at
+        `, [fromUserId, toUserId, message.trim()]);
+
+        // Отправляем уведомление через Socket.IO получателю
+        const senderResult = await pool.query(
+            'SELECT username, avatar_url FROM users WHERE id = $1',
+            [fromUserId]
+        );
+
+        // Эмитим событие для получателя
+        const io = req.app.get('io');
+        if (io) {
+            io.to(`user_${toUserId}`).emit('new_private_message', {
+                id: result.rows[0].id,
+                from_user_id: fromUserId,
+                to_user_id: toUserId,
+                message: message.trim(),
+                created_at: result.rows[0].created_at,
+                from_username: senderResult.rows[0].username,
+                from_avatar: senderResult.rows[0].avatar_url,
+                is_read: false
+            });
+        }
+
+        res.json({ success: true, messageId: result.rows[0].id });
+    } catch (error) {
+        console.error('Error sending message:', error);
+        res.status(500).json({ error: 'Ошибка отправки сообщения' });
+    }
+});
+
+
 module.exports = router;
