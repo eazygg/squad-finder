@@ -98,9 +98,11 @@ body {
 }
 
 /* Единый стиль для всех кнопок навигации */
-.nav-link,
+.profile-nav a,
 .profile-nav button,
+.rooms-nav a,
 .rooms-nav button,
+.search-nav a,
 .search-nav button {
     display: inline-flex;
     align-items: center;
@@ -115,18 +117,23 @@ body {
     font-weight: 500;
     font-size: 14px;
     cursor: pointer;
+    font-family: inherit;
 }
 
-.nav-link i,
+.profile-nav a i,
 .profile-nav button i,
+.rooms-nav a i,
 .rooms-nav button i,
+.search-nav a i,
 .search-nav button i {
     font-size: 14px;
 }
 
-.nav-link:hover,
+.profile-nav a:hover,
 .profile-nav button:hover,
+.rooms-nav a:hover,
 .rooms-nav button:hover,
+.search-nav a:hover,
 .search-nav button:hover {
     background: #252540;
     color: #ffffff;
@@ -135,7 +142,6 @@ body {
 }
 
 /* Кнопка "Сообщения" (акцентная) */
-.nav-link-primary,
 .profile-nav button.nav-link-primary,
 .rooms-nav button.nav-link-primary,
 .search-nav button.nav-link-primary {
@@ -522,7 +528,10 @@ body {
     }
 
     .profile-nav, .rooms-nav, .search-nav {
-        justify-content: center;
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
     }
 
     .modal-content {
