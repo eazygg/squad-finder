@@ -6,7 +6,10 @@ class RoomManager {
         this.currentRoom = null;
         this.currentUser = JSON.parse(localStorage.getItem('user'));
         this.socket = io();
-        this.isCreatingRoom = false; // ← Флаг для защиты от дублей
+        this.isCreatingRoom = false;
+        this.mediaRecorder = null;
+        this.audioChunks = [];
+        this.isRecording = false;
 
         this.setupSocketEvents();
         this.init();
@@ -17,14 +20,6 @@ class RoomManager {
             });
         }
     }
-
-
-
-
-
-
-
-
 
     setupSocketEvents() {
         this.socket.on('connect', () => {
@@ -111,43 +106,6 @@ class RoomManager {
     }
 
     bindEvents() {
-        // В методе bindEvents() добавьте:
-        const voiceRecordBtn = document.getElementById('voiceRecordBtn');
-        const attachFileBtn = document.getElementById('attachFileBtn');
-        const fileInput = document.getElementById('fileInput');
-
-        let isRecording = false;
-
-        if (voiceRecordBtn) {
-            voiceRecordBtn.addEventListener('click', () => {
-                if (!isRecording) {
-                    this.startVoiceRecording();
-                    voiceRecordBtn.style.background = '#ef4444';
-                    voiceRecordBtn.innerHTML = '<i class="fas fa-stop"></i>';
-                    isRecording = true;
-                } else {
-                    this.stopVoiceRecording();
-                    voiceRecordBtn.style.background = 'rgba(255,255,255,0.1)';
-                    voiceRecordBtn.innerHTML = '<i class="fas fa-microphone"></i>';
-                    isRecording = false;
-                }
-            });
-        }
-
-        if (attachFileBtn) {
-            attachFileBtn.addEventListener('click', () => {
-                fileInput.click();
-            });
-        }
-
-        if (fileInput) {
-            fileInput.addEventListener('change', (e) => {
-                if (e.target.files.length > 0) {
-                    this.handleFileSelect(e);
-                    fileInput.value = '';
-                }
-            });
-        }
         const createRoomBtn = document.getElementById('createRoomBtn');
         if (createRoomBtn) {
             createRoomBtn.addEventListener('click', () => {
@@ -159,7 +117,7 @@ class RoomManager {
         if (createRoomForm) {
             createRoomForm.addEventListener('submit', (e) => {
                 e.preventDefault();
-                this.createRoom(); // ← Теперь вызывает createRoom с защитой
+                this.createRoom();
             });
         }
 
@@ -207,11 +165,152 @@ class RoomManager {
                 }
             });
         }
+
+        // ===== НОВЫЕ ОБРАБОТЧИКИ ДЛЯ ГОЛОСОВЫХ СООБЩЕНИЙ И МЕДИАФАЙЛОВ =====
+        const voiceRecordBtn = document.getElementById('voiceRecordBtn');
+        const attachFileBtn = document.getElementById('attachFileBtn');
+        const fileInput = document.getElementById('fileInput');
+
+        if (voiceRecordBtn) {
+            voiceRecordBtn.addEventListener('click', () => {
+                if (!this.isRecording) {
+                    this.startVoiceRecording();
+                    voiceRecordBtn.style.background = '#ef4444';
+                    voiceRecordBtn.innerHTML = '<i class="fas fa-stop"></i>';
+                    this.isRecording = true;
+                } else {
+                    this.stopVoiceRecording();
+                    voiceRecordBtn.style.background = 'rgba(255,255,255,0.1)';
+                    voiceRecordBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+                    this.isRecording = false;
+                }
+            });
+        }
+
+        if (attachFileBtn) {
+            attachFileBtn.addEventListener('click', () => {
+                fileInput.click();
+            });
+        }
+
+        if (fileInput) {
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    this.handleFileSelect(e);
+                    fileInput.value = '';
+                }
+            });
+        }
     }
 
-    // ========== ИСПРАВЛЕННЫЙ МЕТОД СОЗДАНИЯ КОМНАТЫ ==========
+    // ===== МЕТОДЫ ДЛЯ ГОЛОСОВЫХ СООБЩЕНИЙ И МЕДИАФАЙЛОВ =====
+    async startVoiceRecording() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            this.mediaRecorder = new MediaRecorder(stream);
+            this.audioChunks = [];
+
+            this.mediaRecorder.ondataavailable = (event) => {
+                this.audioChunks.push(event.data);
+            };
+
+            this.mediaRecorder.onstop = async () => {
+                const audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' });
+                stream.getTracks().forEach(track => track.stop());
+                await this.sendAudioMessage(audioBlob);
+            };
+
+            this.mediaRecorder.start();
+            showToast('🎙️ Запись началась...', 'info');
+        } catch (error) {
+            console.error('Error starting recording:', error);
+            showToast('Ошибка доступа к микрофону', 'error');
+        }
+    }
+
+    stopVoiceRecording() {
+        if (this.mediaRecorder && this.isRecording) {
+            this.mediaRecorder.stop();
+            showToast('⏹️ Запись остановлена, отправка...', 'info');
+        }
+    }
+
+    async sendAudioMessage(audioBlob) {
+        if (!this.currentRoom) return;
+
+        const formData = new FormData();
+        formData.append('file', audioBlob, 'voice-message.webm');
+
+        try {
+            const response = await fetch('/api/profile/upload-chat-media', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                this.socket.emit('send_room_message', {
+                    roomId: this.currentRoom,
+                    message: `[audio]${data.fileUrl}[/audio]`
+                });
+            } else {
+                showToast('Ошибка отправки голосового сообщения', 'error');
+            }
+        } catch (error) {
+            console.error('Error sending audio:', error);
+            showToast('Ошибка отправки голосового сообщения', 'error');
+        }
+    }
+
+    async sendImageMessage(file) {
+        if (!this.currentRoom) return;
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const response = await fetch('/api/profile/upload-chat-media', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                this.socket.emit('send_room_message', {
+                    roomId: this.currentRoom,
+                    message: `[image]${data.fileUrl}[/image]`
+                });
+            } else {
+                showToast('Ошибка отправки изображения', 'error');
+            }
+        } catch (error) {
+            console.error('Error sending image:', error);
+            showToast('Ошибка отправки изображения', 'error');
+        }
+    }
+
+    handleFileSelect(event) {
+        const file = event.target.files[0];
+        if (file) {
+            if (file.type.startsWith('image/')) {
+                this.sendImageMessage(file);
+            } else if (file.type.startsWith('audio/')) {
+                this.sendAudioMessage(file);
+            } else {
+                showToast('Поддерживаются только изображения и аудио', 'error');
+            }
+        }
+    }
+
     async createRoom() {
-        // Защита от повторных кликов
         if (this.isCreatingRoom) {
             showToast('Подождите, комната уже создается...', 'warning');
             return;
@@ -250,16 +349,11 @@ class RoomManager {
                 const data = await response.json();
                 showToast('Комната создана!', 'success');
 
-                // ← ГЛАВНОЕ ИСПРАВЛЕНИЕ: обновляем оба списка
-                await this.loadRooms();      // Обновляем доступные комнаты
-                await this.loadMyRooms();    // Обновляем мои комнаты
+                await this.loadRooms();
+                await this.loadMyRooms();
 
                 this.hideCreateModal();
-
-                // Очищаем форму
                 document.getElementById('createRoomForm').reset();
-
-                // Открываем чат в новой комнате
                 this.openRoomChat(data.room.id, data.room.name);
             } else {
                 const error = await response.json();
@@ -275,7 +369,6 @@ class RoomManager {
         }
     }
 
-    // Обновляем joinRoom, чтобы тоже обновлял списки
     async joinRoom(roomId, roomName) {
         try {
             const response = await fetch(`/api/profile/join-room/${roomId}`, {
@@ -288,11 +381,8 @@ class RoomManager {
 
             if (response.ok) {
                 showToast('Вы присоединились к комнате!', 'success');
-
-                // ← Обновляем оба списка
                 await this.loadRooms();
                 await this.loadMyRooms();
-
                 this.openRoomChat(roomId, roomName);
             } else {
                 const error = await response.json();
@@ -304,17 +394,11 @@ class RoomManager {
         }
     }
 
-    // Обновляем leaveRoom
     async leaveRoom(roomId) {
         const confirmed = await dialog.confirm('Вы уверены, что хотите покинуть комнату?');
         if (!confirmed) return;
 
         try {
-            // ✅ Если голосовой чат активен в этой комнате, выключаем его
-            if (voiceController && voiceController.isActive && voiceController.currentRoomId === roomId) {
-                voiceController.stopVoiceChat();
-            }
-
             const response = await fetch(`/api/profile/leave-room/${roomId}`, {
                 method: 'POST',
                 headers: {
@@ -325,8 +409,6 @@ class RoomManager {
 
             if (response.ok) {
                 showToast('Вы покинули комнату', 'success');
-
-                // ← Обновляем оба списка
                 await this.loadRooms();
                 await this.loadMyRooms();
 
@@ -343,17 +425,11 @@ class RoomManager {
         }
     }
 
-    // Обновляем deleteMyRoom
     async deleteMyRoom(roomId, roomName) {
         const confirmed = await dialog.confirm(`Вы уверены, что хотите удалить комнату "${roomName}"?`);
         if (!confirmed) return;
 
         try {
-            // ✅ Если голосовой чат активен в этой комнате, выключаем его
-            if (voiceController && voiceController.isActive && voiceController.currentRoomId === roomId) {
-                voiceController.stopVoiceChat();
-            }
-
             const response = await fetch(`/api/profile/my-rooms/${roomId}`, {
                 method: 'DELETE',
                 headers: {
@@ -364,8 +440,6 @@ class RoomManager {
 
             if (response.ok) {
                 showToast('Комната успешно удалена!', 'success');
-
-                // ← Обновляем оба списка
                 await this.loadRooms();
                 await this.loadMyRooms();
 
@@ -382,7 +456,6 @@ class RoomManager {
         }
     }
 
-    // Остальные методы без изменений...
     displayRooms() {
         const container = document.getElementById('roomsContainer');
         if (!container) return;
@@ -392,34 +465,29 @@ class RoomManager {
             return;
         }
 
-        container.innerHTML = this.rooms.map(room => {
-            // Проверяем доступность voiceController
-            const isVoiceActive = window.voiceController && window.voiceController.isActive && window.voiceController.currentRoomId === room.id;
-            const voiceButtonText = isVoiceActive ? 'Выключить голос' : 'Голосовой чат';
-
-            return `
-        <div class="room-card">
-            <div class="room-header">
-                <h4>"${room.name}"</h4>
-                <span class="room-status ${room.status}">${room.status === 'waiting' ? '⏳ Ожидание' : '🎮 В игре'}</span>
-            </div>
-            <div class="room-info">
-                <p><strong>Игра:</strong> ${room.game_name}</p>
-                <p><strong>Игроков:</strong> ${room.current_players}/${room.max_players}</p>
-                <p><strong>Создатель:</strong> ${room.creator_name}</p>
-            </div>
-            <div class="room-actions">
-                
-                ${room.current_players < room.max_players ?
-                `<button class="btn btn-primary btn-sm" onclick="roomManager.joinRoom(${room.id}, '${room.name.replace(/'/g, "\\'")}')">
+        container.innerHTML = this.rooms.map(room => `
+            <div class="room-card">
+                <div class="room-header">
+                    <h4>"${this.escapeHtml(room.name)}"</h4>
+                    <span class="room-status ${room.status}">${room.status === 'waiting' ? '⏳ Ожидание' : '🎮 В игре'}</span>
+                </div>
+                <div class="room-info">
+                    <p><strong>Игра:</strong> ${this.escapeHtml(room.game_name)}</p>
+                    <p><strong>Игроков:</strong> ${room.current_players}/${room.max_players}</p>
+                    <p><strong>Создатель:</strong> ${this.escapeHtml(room.creator_name)}</p>
+                </div>
+                <div class="room-actions">
+                    ${room.current_players < room.max_players ?
+            `<button class="btn btn-primary btn-sm" onclick="roomManager.joinRoom(${room.id}, '${this.escapeHtml(room.name).replace(/'/g, "\\'")}')">
                             Присоединиться
                         </button>` :
-                `<button class="btn btn-secondary btn-sm" disabled>Комната заполнена</button>`
-            }
+            `<button class="btn btn-secondary btn-sm" disabled>Комната заполнена</button>`
+        }
+                </div>
             </div>
-        </div>
-    `}).join('');
+        `).join('');
     }
+
     displayMyRooms() {
         const container = document.getElementById('myRoomsContainer');
         if (!container) return;
@@ -429,41 +497,36 @@ class RoomManager {
             return;
         }
 
-        container.innerHTML = this.myRooms.map(room => {
-            // Проверяем доступность voiceController
-            const isVoiceActive = window.voiceController && window.voiceController.isActive && window.voiceController.currentRoomId === room.id;
-            const voiceButtonText = isVoiceActive ? 'Выключить голос' : 'Голосовой чат';
-
-            return `
-        <div class="room-card my-room">
-            <div class="room-header">
-                <h4>"${room.name}"</h4>
-                <span class="room-status ${room.status}">${room.status === 'waiting' ? '⏳ Ожидание' : '🎮 В игре'}</span>
-            </div>
-            <div class="room-info">
-                <p><strong>Игра:</strong> ${room.game_name}</p>
-                <p><strong>Игроков:</strong> ${room.current_players}/${room.max_players}</p>
-                <p><strong>Создатель:</strong> ${room.creator_name}</p>
-            </div>
-            <div class="room-actions">
-              
-                <button class="btn btn-primary btn-sm" onclick="roomManager.openRoomChat(${room.id}, '${room.name.replace(/'/g, "\\'")}')">
-                    Открыть чат
-                </button>
-                ${room.is_member ?
-                `<button class="btn btn-warning btn-sm" onclick="roomManager.leaveRoom(${room.id})">
+        container.innerHTML = this.myRooms.map(room => `
+            <div class="room-card my-room">
+                <div class="room-header">
+                    <h4>"${this.escapeHtml(room.name)}"</h4>
+                    <span class="room-status ${room.status}">${room.status === 'waiting' ? '⏳ Ожидание' : '🎮 В игре'}</span>
+                </div>
+                <div class="room-info">
+                    <p><strong>Игра:</strong> ${this.escapeHtml(room.game_name)}</p>
+                    <p><strong>Игроков:</strong> ${room.current_players}/${room.max_players}</p>
+                    <p><strong>Создатель:</strong> ${this.escapeHtml(room.creator_name)}</p>
+                </div>
+                <div class="room-actions">
+                    <button class="btn btn-primary btn-sm" onclick="roomManager.openRoomChat(${room.id}, '${this.escapeHtml(room.name).replace(/'/g, "\\'")}')">
+                        Открыть чат
+                    </button>
+                    ${room.is_member ?
+            `<button class="btn btn-warning btn-sm" onclick="roomManager.leaveRoom(${room.id})">
                             Покинуть
                         </button>` : ''
-            }
-                ${room.created_by === this.currentUser?.id ?
-                `<button class="btn btn-danger btn-sm" onclick="roomManager.deleteMyRoom(${room.id}, '${room.name.replace(/'/g, "\\'")}')">
+        }
+                    ${room.created_by === this.currentUser?.id ?
+            `<button class="btn btn-danger btn-sm" onclick="roomManager.deleteMyRoom(${room.id}, '${this.escapeHtml(room.name).replace(/'/g, "\\'")}')">
                             Удалить
                         </button>` : ''
-            }
+        }
+                </div>
             </div>
-        </div>
-    `}).join('');
+        `).join('');
     }
+
     showCreateModal() {
         const modal = document.getElementById('createRoomModal');
         if (modal) {
@@ -516,32 +579,35 @@ class RoomManager {
         const formatMessage = (msg) => {
             let content = this.escapeHtml(msg.message_text);
 
-            // Обработка аудио сообщений
             if (msg.message_text.includes('[audio]')) {
-                const audioUrl = msg.message_text.match(/\[audio\](.*?)\[\/audio\]/)[1];
-                content = `
-                <audio controls style="max-width: 200px; height: 40px;">
-                    <source src="${audioUrl}" type="audio/webm">
-                    Ваш браузер не поддерживает аудио
-                </audio>
-            `;
-            }
-            // Обработка изображений
-            else if (msg.message_text.includes('[image]')) {
-                const imageUrl = msg.message_text.match(/\[image\](.*?)\[\/image\]/)[1];
-                content = `
-                <img src="${imageUrl}" style="max-width: 200px; max-height: 150px; border-radius: 8px; cursor: pointer;" 
-                     onclick="window.open('${imageUrl}', '_blank')">
-            `;
+                const match = msg.message_text.match(/\[audio\](.*?)\[\/audio\]/);
+                if (match) {
+                    const audioUrl = match[1];
+                    content = `
+                        <audio controls style="max-width: 200px; height: 40px;">
+                            <source src="${audioUrl}" type="audio/webm">
+                            Ваш браузер не поддерживает аудио
+                        </audio>
+                    `;
+                }
+            } else if (msg.message_text.includes('[image]')) {
+                const match = msg.message_text.match(/\[image\](.*?)\[\/image\]/);
+                if (match) {
+                    const imageUrl = match[1];
+                    content = `
+                        <img src="${imageUrl}" style="max-width: 200px; max-height: 150px; border-radius: 8px; cursor: pointer;" 
+                             onclick="window.open('${imageUrl}', '_blank')">
+                    `;
+                }
             }
 
             return `
-            <div class="message ${msg.user_id === this.currentUser?.id ? 'my-message' : 'other-message'}">
-                <div class="message-sender">${this.escapeHtml(msg.username)}</div>
-                <div class="message-text">${content}</div>
-                <div class="message-time">${new Date(msg.created_at).toLocaleTimeString()}</div>
-            </div>
-        `;
+                <div class="message ${msg.user_id === this.currentUser?.id ? 'my-message' : 'other-message'}">
+                    <div class="message-sender">${this.escapeHtml(msg.username)}</div>
+                    <div class="message-text">${content}</div>
+                    <div class="message-time">${new Date(msg.created_at).toLocaleTimeString()}</div>
+                </div>
+            `;
         };
 
         container.innerHTML = messages.map(msg => formatMessage(msg)).join('');
@@ -624,10 +690,25 @@ class RoomManager {
         }
     }
 
+    async loadMyRooms() {
+        try {
+            const response = await fetch('/api/profile/my-rooms', {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
 
-    // Добавьте эти методы в класс RoomManager в rooms.js
+            if (response.ok) {
+                this.myRooms = await response.json();
+                this.displayMyRooms();
+            } else {
+                console.error('Failed to load my rooms:', response.status);
+            }
+        } catch (error) {
+            console.error('Error loading my rooms:', error);
+        }
+    }
 
-// Инициализация вкладок
     initChatTabs() {
         const chatTab = document.querySelector('.chat-tab[data-tab="chat"]');
         const playersTab = document.querySelector('.chat-tab[data-tab="players"]');
@@ -648,7 +729,6 @@ class RoomManager {
                 chatContent.style.display = 'none';
                 playersContent.style.display = 'flex';
 
-                // Загружаем участников при переключении на вкладку
                 if (this.currentRoom) {
                     this.loadRoomPlayers(this.currentRoom);
                 }
@@ -656,7 +736,6 @@ class RoomManager {
         }
     }
 
-// Загрузка участников комнаты
     async loadRoomPlayers(roomId) {
         try {
             const response = await fetch(`/api/profile/room-players/${roomId}`, {
@@ -680,7 +759,6 @@ class RoomManager {
         }
     }
 
-// Отображение участников комнаты
     displayRoomPlayers(players) {
         const container = document.getElementById('roomPlayersList');
         if (!container) return;
@@ -691,62 +769,53 @@ class RoomManager {
         }
 
         container.innerHTML = players.map(player => `
-        <div class="player-card" data-user-id="${player.id}">
-            <div class="player-avatar">
-                ${player.avatar_url ?
+            <div class="player-card" data-user-id="${player.id}">
+                <div class="player-avatar">
+                    ${player.avatar_url ?
             `<img src="${player.avatar_url}" alt="${this.escapeHtml(player.username)}" onerror="this.src='/uploads/default-avatar.png'">` :
             `<div class="avatar-placeholder-small"><i class="fas fa-user"></i></div>`
         }
-            </div>
-            <div class="player-info">
-                <div class="player-name">
-                    ${this.escapeHtml(player.username)}
-                    ${player.is_creator ? '<span class="creator-badge"><i class="fas fa-crown"></i> Создатель</span>' : ''}
                 </div>
-                <div class="player-test-status">
-                    ${player.test_completed ?
+                <div class="player-info">
+                    <div class="player-name">
+                        ${this.escapeHtml(player.username)}
+                        ${player.is_creator ? '<span class="creator-badge"><i class="fas fa-crown"></i> Создатель</span>' : ''}
+                    </div>
+                    <div class="player-test-status">
+                        ${player.test_completed ?
             '<span class="test-passed"><i class="fas fa-check-circle"></i> Тест пройден</span>' :
             '<span class="test-not-passed"><i class="fas fa-clock"></i> Тест не пройден</span>'
         }
-                </div>
-                ${player.test_completed ? `
-                    <div class="player-traits-preview">
-                        <span class="trait-preview" title="Открытость">O: ${player.openness || '?'}</span>
-                        <span class="trait-preview" title="Добросовестность">C: ${player.conscientiousness || '?'}</span>
-                        <span class="trait-preview" title="Экстраверсия">E: ${player.extraversion || '?'}</span>
-                        <span class="trait-preview" title="Доброжелательность">A: ${player.agreeableness || '?'}</span>
-                        <span class="trait-preview" title="Нейротизм">N: ${player.neuroticism || '?'}</span>
                     </div>
-                ` : ''}
+                    ${player.test_completed ? `
+                        <div class="player-traits-preview">
+                            <span class="trait-preview" title="Открытость">O: ${player.openness || '?'}</span>
+                            <span class="trait-preview" title="Добросовестность">C: ${player.conscientiousness || '?'}</span>
+                            <span class="trait-preview" title="Экстраверсия">E: ${player.extraversion || '?'}</span>
+                            <span class="trait-preview" title="Доброжелательность">A: ${player.agreeableness || '?'}</span>
+                            <span class="trait-preview" title="Нейротизм">N: ${player.neuroticism || '?'}</span>
+                        </div>
+                    ` : ''}
+                </div>
+                <div class="player-actions">
+                    <button class="btn-view-profile" onclick="roomManager.viewPlayerProfile(${player.id})" title="Просмотреть профиль">
+                        <i class="fas fa-user-circle"></i>
+                    </button>
+                    <button class="btn-send-message" onclick="roomManager.sendPrivateMessage(${player.id}, '${this.escapeHtml(player.username).replace(/'/g, "\\'")}')" title="Написать личное сообщение">
+                        <i class="fas fa-envelope"></i>
+                    </button>
+                </div>
             </div>
-            <div class="player-actions">
-                <button class="btn-view-profile" onclick="roomManager.viewPlayerProfile(${player.id})" title="Просмотреть профиль">
-                    <i class="fas fa-user-circle"></i>
-                </button>
-                <button class="btn-send-message" onclick="roomManager.sendPrivateMessage(${player.id}, '${this.escapeHtml(player.username).replace(/'/g, "\\'")}')" title="Написать личное сообщение">
-                    <i class="fas fa-envelope"></i>
-                </button>
-            </div>
-        </div>
-    `).join('');
+        `).join('');
     }
 
-// Просмотр профиля участника
     viewPlayerProfile(userId) {
-        // Открываем профиль в новой вкладке
         window.open(`/user-profile.html?id=${userId}`, '_blank');
     }
 
-// Отправка личного сообщения (заглушка, можно реализовать позже)
     sendPrivateMessage(userId, username) {
         if (typeof privateChat !== 'undefined' && privateChat) {
-            // Закрываем текущее окно чата комнаты (опционально)
-            // this.closeChat();
-
-            // Открываем приватный чат
             privateChat.openChat();
-
-            // Открываем диалог с выбранным пользователем
             setTimeout(() => {
                 privateChat.openDialog(userId, username);
             }, 200);
@@ -755,32 +824,6 @@ class RoomManager {
         }
     }
 
-// Обновляем метод openRoomChat, добавляем инициализацию вкладок
-    openRoomChat(roomId, roomName) {
-        this.currentRoom = roomId;
-
-        const modal = document.getElementById('roomChatModal');
-        const title = document.getElementById('roomChatTitle');
-
-        if (modal && title) {
-            title.textContent = `Чат: ${roomName}`;
-            modal.style.display = 'block';
-
-            // Сбрасываем на вкладку чата
-            this.switchToChatTab();
-
-            // Инициализируем вкладки (если еще не инициализированы)
-            this.initChatTabs();
-
-            // Присоединяемся к комнате чата
-            this.socket.emit('join_room_chat', roomId);
-
-            // Загружаем участников в фоне
-            this.loadRoomPlayers(roomId);
-        }
-    }
-
-// Переключение на вкладку чата
     switchToChatTab() {
         const chatTab = document.querySelector('.chat-tab[data-tab="chat"]');
         const playersTab = document.querySelector('.chat-tab[data-tab="players"]');
@@ -795,26 +838,6 @@ class RoomManager {
         }
     }
 
-
-    async loadMyRooms() {
-        try {
-            const response = await fetch('/api/profile/my-rooms', {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
-            });
-
-            if (response.ok) {
-                this.myRooms = await response.json();
-                this.displayMyRooms();
-            } else {
-                console.error('Failed to load my rooms:', response.status);
-            }
-        } catch (error) {
-            console.error('Error loading my rooms:', error);
-        }
-    }
-
     escapeHtml(text) {
         if (!text) return '';
         const div = document.createElement('div');
@@ -823,80 +846,14 @@ class RoomManager {
     }
 }
 
-// ==================== ЗАГРУЗКА ФАЙЛОВ ДЛЯ ЧАТА ====================
-// const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
-
-// Создаем папку для медиафайлов чата
-const chatUploadsDir = path.join(__dirname, '../public/uploads/chat');
-if (!fs.existsSync(chatUploadsDir)) {
-    fs.mkdirSync(chatUploadsDir, { recursive: true });
-}
-
-// Настройка multer для медиафайлов
-const chatStorage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, chatUploadsDir);
-    },
-    filename: function (req, file, cb) {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, 'chat-' + uniqueSuffix + path.extname(file.originalname));
-    }
-});
-
-const chatUpload = multer({
-    storage: chatStorage,
-    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
-    fileFilter: function (req, file, cb) {
-        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'audio/webm', 'audio/mp3', 'audio/mpeg'];
-        if (allowedTypes.includes(file.mimetype)) {
-            cb(null, true);
-        } else {
-            cb(new Error('Неподдерживаемый тип файла'), false);
-        }
-    }
-});
-
-// Загрузка медиафайла в чат
-router.post('/upload-chat-media', authenticateToken, chatUpload.single('file'), async (req, res) => {
-    try {
-        if (!req.file) {
-            return res.status(400).json({ error: 'Файл не загружен' });
-        }
-
-        const fileUrl = '/uploads/chat/' + req.file.filename;
-        let fileType = 'image';
-
-        if (req.file.mimetype.startsWith('audio')) {
-            fileType = 'audio';
-        }
-
-        res.json({
-            success: true,
-            fileUrl: fileUrl,
-            fileType: fileType,
-            fileName: req.file.originalname
-        });
-
-    } catch (error) {
-        console.error('Error uploading chat media:', error);
-        res.status(500).json({ error: 'Ошибка загрузки файла' });
-    }
-});
-// Добавьте в начало файла rooms.js, после класса RoomManager
-
 // Глобальный экземпляр
 let roomManager;
 
-// Инициализация при загрузке
 document.addEventListener('DOMContentLoaded', () => {
     roomManager = new RoomManager();
 });
 
-// Функция уведомлений
 function showToast(message, type = 'info', duration = 4000) {
-    // Проверяем, существует ли уже контейнер
     let container = document.querySelector('.toast-container');
     if (!container) {
         container = document.createElement('div');
