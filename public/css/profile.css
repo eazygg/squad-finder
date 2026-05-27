@@ -476,10 +476,32 @@
 
 .retake-test-btn {
     background: linear-gradient(135deg, #f59e0b, #d97706);
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 10px rgba(245, 158, 11, 0.2);
 }
 
 .retake-test-btn:hover {
-    box-shadow: 0 5px 15px rgba(255, 152, 0, 0.3);
+    transform: translateY(-2px);
+    background: linear-gradient(135deg, #d97706, #b45309);
+    box-shadow: 0 6px 15px rgba(245, 158, 11, 0.3);
+}
+
+.retake-test-btn:active {
+    transform: translateY(1px);
+}
+
+.retake-test-btn i {
+    font-size: 14px;
 }
 
 /* Чужой профиль */
