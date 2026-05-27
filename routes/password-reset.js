@@ -10,31 +10,27 @@ router.post('/forgot-password', async (req, res) => {
     try {
         const { email } = req.body;
 
-        // Проверяем пользователя
         const user = await pool.query('SELECT id, username FROM users WHERE email = $1', [email]);
 
         if (user.rows.length === 0) {
             return res.status(404).json({ error: 'Пользователь с таким email не найден' });
         }
 
-        // Создаем токен
         const resetToken = crypto.randomBytes(32).toString('hex');
-        const resetExpires = new Date(Date.now() + 3600000); // 1 час
+        const resetExpires = new Date(Date.now() + 3600000);
 
-        // Сохраняем токен
         await pool.query(
             'UPDATE users SET reset_token = $1, reset_expires = $2 WHERE id = $3',
             [resetToken, resetExpires, user.rows[0].id]
         );
 
-        // Ссылка для сброса
-        const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:3002'}/reset-password.html?token=${resetToken}`;
+        // ✅ ИСПРАВЛЕНО: используем FRONTEND_URL
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3002';
+        const resetUrl = `${frontendUrl}/reset-password.html?token=${resetToken}`;
 
-        // Просто возвращаем ссылку (без отправки письма)
         res.json({
-            success: true,
-            resetUrl: resetUrl,
-            message: `Ссылка для сброса пароля (скопируйте и вставьте в браузер):\n${resetUrl}`
+            message: `✅ Ссылка для сброса пароля создана!\nСсылка: ${resetUrl}\nСсылка действительна 1 час.`,
+            resetUrl: resetUrl
         });
 
     } catch (error) {
@@ -42,7 +38,6 @@ router.post('/forgot-password', async (req, res) => {
         res.status(500).json({ error: 'Ошибка сервера' });
     }
 });
-
 // 2. Проверка токена
 router.post('/verify-reset-token', async (req, res) => {
     try {
