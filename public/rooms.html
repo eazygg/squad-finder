@@ -119,12 +119,22 @@
                 <div id="roomChatMessages" class="room-chat-messages">
                     <div class="no-messages">Нет сообщений</div>
                 </div>
+
+                <!-- НОВЫЙ БЛОК С КНОПКАМИ ДЛЯ ГОЛОСОВЫХ СООБЩЕНИЙ И МЕДИАФАЙЛОВ -->
                 <div class="room-chat-input">
+                    <button id="voiceRecordBtn" class="btn-secondary" style="border-radius: 50%; padding: 10px;" title="Голосовое сообщение">
+                        <i class="fas fa-microphone"></i>
+                    </button>
+                    <button id="attachFileBtn" class="btn-secondary" style="border-radius: 50%; padding: 10px;" title="Прикрепить файл">
+                        <i class="fas fa-paperclip"></i>
+                    </button>
                     <input type="text" id="roomMessageInput" placeholder="Напишите сообщение..." class="chat-input-field">
                     <button id="sendRoomMessageBtn" class="btn-primary" style="padding: 10px 20px;">
                         <i class="fas fa-paper-plane"></i>
                     </button>
                 </div>
+                <input type="file" id="fileInput" accept="image/*,audio/*" style="display: none;">
+                <!-- КОНЕЦ НОВОГО БЛОКА -->
             </div>
 
             <div id="playersContent" class="players-content" style="display: none;">
@@ -135,6 +145,7 @@
         </div>
     </div>
 </div>
+
 <footer class="footer">
     <p>© 2026 Squad Finder. Все права защищены.</p>
     <p style="margin-top: 10px;">
@@ -143,6 +154,7 @@
         </a>
     </p>
 </footer>
+
 <!-- ПРАВИЛЬНЫЙ ПОРЯДОК СКРИПТОВ -->
 <script src="/js/dialog.js"></script>
 <script src="/js/app-state-manager.js"></script>

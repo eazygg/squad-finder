@@ -111,6 +111,43 @@ class RoomManager {
     }
 
     bindEvents() {
+        // В методе bindEvents() добавьте:
+        const voiceRecordBtn = document.getElementById('voiceRecordBtn');
+        const attachFileBtn = document.getElementById('attachFileBtn');
+        const fileInput = document.getElementById('fileInput');
+
+        let isRecording = false;
+
+        if (voiceRecordBtn) {
+            voiceRecordBtn.addEventListener('click', () => {
+                if (!isRecording) {
+                    this.startVoiceRecording();
+                    voiceRecordBtn.style.background = '#ef4444';
+                    voiceRecordBtn.innerHTML = '<i class="fas fa-stop"></i>';
+                    isRecording = true;
+                } else {
+                    this.stopVoiceRecording();
+                    voiceRecordBtn.style.background = 'rgba(255,255,255,0.1)';
+                    voiceRecordBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+                    isRecording = false;
+                }
+            });
+        }
+
+        if (attachFileBtn) {
+            attachFileBtn.addEventListener('click', () => {
+                fileInput.click();
+            });
+        }
+
+        if (fileInput) {
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    this.handleFileSelect(e);
+                    fileInput.value = '';
+                }
+            });
+        }
         const createRoomBtn = document.getElementById('createRoomBtn');
         if (createRoomBtn) {
             createRoomBtn.addEventListener('click', () => {
@@ -476,14 +513,38 @@ class RoomManager {
             return;
         }
 
-        container.innerHTML = messages.map(msg => `
+        const formatMessage = (msg) => {
+            let content = this.escapeHtml(msg.message_text);
+
+            // Обработка аудио сообщений
+            if (msg.message_text.includes('[audio]')) {
+                const audioUrl = msg.message_text.match(/\[audio\](.*?)\[\/audio\]/)[1];
+                content = `
+                <audio controls style="max-width: 200px; height: 40px;">
+                    <source src="${audioUrl}" type="audio/webm">
+                    Ваш браузер не поддерживает аудио
+                </audio>
+            `;
+            }
+            // Обработка изображений
+            else if (msg.message_text.includes('[image]')) {
+                const imageUrl = msg.message_text.match(/\[image\](.*?)\[\/image\]/)[1];
+                content = `
+                <img src="${imageUrl}" style="max-width: 200px; max-height: 150px; border-radius: 8px; cursor: pointer;" 
+                     onclick="window.open('${imageUrl}', '_blank')">
+            `;
+            }
+
+            return `
             <div class="message ${msg.user_id === this.currentUser?.id ? 'my-message' : 'other-message'}">
                 <div class="message-sender">${this.escapeHtml(msg.username)}</div>
-                <div class="message-text">${this.escapeHtml(msg.message_text)}</div>
+                <div class="message-text">${content}</div>
                 <div class="message-time">${new Date(msg.created_at).toLocaleTimeString()}</div>
             </div>
-        `).join('');
+        `;
+        };
 
+        container.innerHTML = messages.map(msg => formatMessage(msg)).join('');
         container.scrollTop = container.scrollHeight;
     }
 
@@ -762,6 +823,67 @@ class RoomManager {
     }
 }
 
+// ==================== ЗАГРУЗКА ФАЙЛОВ ДЛЯ ЧАТА ====================
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
+// Создаем папку для медиафайлов чата
+const chatUploadsDir = path.join(__dirname, '../public/uploads/chat');
+if (!fs.existsSync(chatUploadsDir)) {
+    fs.mkdirSync(chatUploadsDir, { recursive: true });
+}
+
+// Настройка multer для медиафайлов
+const chatStorage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, chatUploadsDir);
+    },
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, 'chat-' + uniqueSuffix + path.extname(file.originalname));
+    }
+});
+
+const chatUpload = multer({
+    storage: chatStorage,
+    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+    fileFilter: function (req, file, cb) {
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'audio/webm', 'audio/mp3', 'audio/mpeg'];
+        if (allowedTypes.includes(file.mimetype)) {
+            cb(null, true);
+        } else {
+            cb(new Error('Неподдерживаемый тип файла'), false);
+        }
+    }
+});
+
+// Загрузка медиафайла в чат
+router.post('/upload-chat-media', authenticateToken, chatUpload.single('file'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: 'Файл не загружен' });
+        }
+
+        const fileUrl = '/uploads/chat/' + req.file.filename;
+        let fileType = 'image';
+
+        if (req.file.mimetype.startsWith('audio')) {
+            fileType = 'audio';
+        }
+
+        res.json({
+            success: true,
+            fileUrl: fileUrl,
+            fileType: fileType,
+            fileName: req.file.originalname
+        });
+
+    } catch (error) {
+        console.error('Error uploading chat media:', error);
+        res.status(500).json({ error: 'Ошибка загрузки файла' });
+    }
+});
 // Добавьте в начало файла rooms.js, после класса RoomManager
 
 // Глобальный экземпляр

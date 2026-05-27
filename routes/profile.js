@@ -1372,5 +1372,66 @@ router.post('/send-message', authenticateToken, async (req, res) => {
     }
 });
 
+// ==================== ЗАГРУЗКА ФАЙЛОВ ДЛЯ ЧАТА ====================
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
+// Создаем папку для медиафайлов чата
+const chatUploadsDir = path.join(__dirname, '../public/uploads/chat');
+if (!fs.existsSync(chatUploadsDir)) {
+    fs.mkdirSync(chatUploadsDir, { recursive: true });
+}
+
+// Настройка multer для медиафайлов
+const chatStorage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, chatUploadsDir);
+    },
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, 'chat-' + uniqueSuffix + path.extname(file.originalname));
+    }
+});
+
+const chatUpload = multer({
+    storage: chatStorage,
+    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+    fileFilter: function (req, file, cb) {
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'audio/webm', 'audio/mp3', 'audio/mpeg'];
+        if (allowedTypes.includes(file.mimetype)) {
+            cb(null, true);
+        } else {
+            cb(new Error('Неподдерживаемый тип файла'), false);
+        }
+    }
+});
+
+// Загрузка медиафайла в чат
+router.post('/upload-chat-media', authenticateToken, chatUpload.single('file'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: 'Файл не загружен' });
+        }
+
+        const fileUrl = '/uploads/chat/' + req.file.filename;
+        let fileType = 'image';
+
+        if (req.file.mimetype.startsWith('audio')) {
+            fileType = 'audio';
+        }
+
+        res.json({
+            success: true,
+            fileUrl: fileUrl,
+            fileType: fileType,
+            fileName: req.file.originalname
+        });
+
+    } catch (error) {
+        console.error('Error uploading chat media:', error);
+        res.status(500).json({ error: 'Ошибка загрузки файла' });
+    }
+});
 
 module.exports = router;
