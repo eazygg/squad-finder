@@ -1373,9 +1373,8 @@ router.post('/send-message', authenticateToken, async (req, res) => {
 });
 
 // ==================== ЗАГРУЗКА ФАЙЛОВ ДЛЯ ЧАТА ====================
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
+// ==================== ЗАГРУЗКА ФАЙЛОВ ДЛЯ ЧАТА ====================
+// Используем уже существующий multer, не создаём новый!
 
 // Создаем папку для медиафайлов чата
 const chatUploadsDir = path.join(__dirname, '../public/uploads/chat');
@@ -1383,7 +1382,7 @@ if (!fs.existsSync(chatUploadsDir)) {
     fs.mkdirSync(chatUploadsDir, { recursive: true });
 }
 
-// Настройка multer для медиафайлов
+// Настройка multer для медиафайлов (новая конфигурация)
 const chatStorage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, chatUploadsDir);
@@ -1420,6 +1419,8 @@ router.post('/upload-chat-media', authenticateToken, chatUpload.single('file'), 
         if (req.file.mimetype.startsWith('audio')) {
             fileType = 'audio';
         }
+
+        console.log('File uploaded:', fileUrl, 'Type:', fileType);
 
         res.json({
             success: true,
