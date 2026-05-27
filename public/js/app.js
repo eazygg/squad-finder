@@ -9,39 +9,39 @@ class SquadFinderApp {
         this.bindEvents();
     }
 
-    // async checkServerStatus() {
-    //     try {
-    //         const response = await fetch('/api/test');
-    //         const data = await response.json();
-    //
-    //         const statusElement = document.getElementById('status');
-    //         if (data.status === 'OK') {
-    //             statusElement.innerHTML = `
-    //                 <div class="status success">
-    //                     <i class="fas fa-check-circle"></i>
-    //                     <strong>✅ Сервер и база данных работают!</strong><br>
-    //                     <small>Время в БД: ${new Date(data.databaseTime).toLocaleString('ru-RU')}</small>
-    //                 </div>
-    //             `;
-    //         } else {
-    //             statusElement.innerHTML = `
-    //                 <div class="status error">
-    //                     <i class="fas fa-exclamation-circle"></i>
-    //                     <strong>⚠️ Ошибка сервера</strong><br>
-    //                     <small>${data.error || 'Неизвестная ошибка'}</small>
-    //                 </div>
-    //             `;
-    //         }
-    //     } catch (error) {
-    //         document.getElementById('status').innerHTML = `
-    //             <div class="status error">
-    //                 <i class="fas fa-exclamation-triangle"></i>
-    //                 <strong>❌ Ошибка подключения к серверу</strong><br>
-    //                 <small>${error.message}</small>
-    //             </div>
-    //         `;
-    //     }
-    // }
+    async checkServerStatus() {
+        try {
+            const response = await fetch('/api/test');
+            const data = await response.json();
+
+            const statusElement = document.getElementById('status');
+            if (data.status === 'OK') {
+                statusElement.innerHTML = `
+                    <div class="status success">
+                        <i class="fas fa-check-circle"></i>
+                        <strong>✅ Сервер и база данных работают!</strong><br>
+                        <small>Время в БД: ${new Date(data.databaseTime).toLocaleString('ru-RU')}</small>
+                    </div>
+                `;
+            } else {
+                statusElement.innerHTML = `
+                    <div class="status error">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <strong>⚠️ Ошибка сервера</strong><br>
+                        <small>${data.error || 'Неизвестная ошибка'}</small>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            document.getElementById('status').innerHTML = `
+                <div class="status error">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>❌ Ошибка подключения к серверу</strong><br>
+                    <small>${error.message}</small>
+                </div>
+            `;
+        }
+    }
 
     bindEvents() {
         // Обработчики для авторизации
