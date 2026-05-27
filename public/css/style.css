@@ -87,7 +87,7 @@ body {
     color: var(--primary);
 }
 
-/* Навигация */
+/* ========== НАВИГАЦИЯ И КНОПКИ ХЕДЕРА (ОБНОВЛЕНЫ) ========== */
 .profile-nav,
 .rooms-nav,
 .search-nav {
@@ -97,29 +97,124 @@ body {
     flex-wrap: wrap;
 }
 
-.nav-link {
+/* Единый стиль для всех кнопок навигации */
+.nav-link,
+.profile-nav button,
+.rooms-nav button,
+.search-nav button {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 8px 16px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 8px;
-    color: var(--text-secondary);
+    padding: 10px 18px;
+    background: #1a1a2e;
+    border: 1px solid #2d2d44;
+    border-radius: 10px;
+    color: #a0a0b0;
     text-decoration: none;
     transition: all 0.3s ease;
     font-weight: 500;
     font-size: 14px;
+    cursor: pointer;
 }
 
-.nav-link:hover {
-    background: rgba(59, 130, 246, 0.2);
-    color: var(--text-primary);
-    transform: translateY(-2px);
-}
-
-.nav-link i {
+.nav-link i,
+.profile-nav button i,
+.rooms-nav button i,
+.search-nav button i {
     font-size: 14px;
 }
+
+.nav-link:hover,
+.profile-nav button:hover,
+.rooms-nav button:hover,
+.search-nav button:hover {
+    background: #252540;
+    color: #ffffff;
+    transform: translateY(-2px);
+    border-color: #3b82f6;
+}
+
+/* Кнопка "Сообщения" (акцентная) */
+.nav-link-primary,
+.profile-nav button.nav-link-primary,
+.rooms-nav button.nav-link-primary,
+.search-nav button.nav-link-primary {
+    background: #1e2a3a;
+    border-color: #3b82f6;
+    color: #60a5fa;
+}
+
+.nav-link-primary:hover,
+.profile-nav button.nav-link-primary:hover,
+.rooms-nav button.nav-link-primary:hover,
+.search-nav button.nav-link-primary:hover {
+    background: #2d3a4a;
+    color: #93c5fd;
+    border-color: #60a5fa;
+}
+
+/* Кнопка "Выйти" (опасная) */
+.nav-link-danger,
+.profile-nav button.nav-link-danger,
+.rooms-nav button.nav-link-danger,
+.search-nav button.nav-link-danger {
+    background: #2a1a1a;
+    border-color: #7f1a1a;
+    color: #f87171;
+}
+
+.nav-link-danger:hover,
+.profile-nav button.nav-link-danger:hover,
+.rooms-nav button.nav-link-danger:hover,
+.search-nav button.nav-link-danger:hover {
+    background: #3a1a1a;
+    color: #fca5a5;
+    border-color: #ef4444;
+}
+
+/* Кнопка "Админ-панель" */
+.nav-link-warning,
+.profile-nav button.nav-link-warning,
+.rooms-nav button.nav-link-warning,
+.search-nav button.nav-link-warning {
+    background: #2a241a;
+    border-color: #78350f;
+    color: #fbbf24;
+}
+
+.nav-link-warning:hover,
+.profile-nav button.nav-link-warning:hover,
+.rooms-nav button.nav-link-warning:hover,
+.search-nav button.nav-link-warning:hover {
+    background: #3a2e1a;
+    color: #fcd34d;
+    border-color: #f59e0b;
+}
+
+/* Класс btn-secondary для обратной совместимости */
+.btn-secondary {
+    background: #1a1a2e;
+    border: 1px solid #2d2d44;
+    color: #a0a0b0;
+    padding: 10px 18px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-secondary:hover {
+    background: #252540;
+    color: #ffffff;
+    transform: translateY(-2px);
+    border-color: #3b82f6;
+}
+
+/* ========== КОНЕЦ БЛОКА НАВИГАЦИИ ========== */
 
 /* Кнопки */
 .btn {
@@ -143,18 +238,6 @@ body {
 .btn-primary:hover {
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(59, 130, 246, 0.3);
-}
-
-.btn-secondary {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid var(--border);
-    color: var(--text-secondary);
-}
-
-.btn-secondary:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: var(--text-primary);
-    transform: translateY(-2px);
 }
 
 .btn-danger {
