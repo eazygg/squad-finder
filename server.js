@@ -37,7 +37,7 @@ if (!fs.existsSync(uploadsDir)) {
 // Middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/uploads', express.static(uploadsDir));
+app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
 
 //voice
@@ -102,6 +102,13 @@ app.get('/api/test-search', (req, res) => {
         }
     ]);
 });
+
+const publicUploadsDir = path.join(__dirname, 'public/uploads');
+if (!fs.existsSync(publicUploadsDir)) {
+    fs.mkdirSync(publicUploadsDir, { recursive: true });
+}
+
+
 const passwordResetRoutes = require('./routes/password-reset');
 app.use('/api/password-reset', passwordResetRoutes);
 // Инициализация базы данных
