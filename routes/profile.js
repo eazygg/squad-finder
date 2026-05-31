@@ -281,26 +281,58 @@ router.post('/create-room', authenticateToken, async (req, res) => {
     }
 });
 
+// ==================== КОМНАТЫ (ОБНОВЛЕННЫЙ МАРШРУТ) ====================
 router.get('/rooms', authenticateToken, async (req, res) => {
     try {
         const { game_name } = req.query;
+        const currentUserId = req.user.userId; // ID авторизованного пользователя для расчета совместимости
+
+        // Модернизированный SQL-запрос: связываем комнаты с создателем (u) и текущим юзером (cu)
         let query = `
-            SELECT gr.*, u.username as creator_name, COUNT(rp.user_id) as current_players
+            SELECT 
+                gr.*, 
+                u.username as creator_name, 
+                COUNT(rp.user_id) as current_players,
+                -- Вычисляем процент психологической совместимости между текущим юзером и хостом
+                CASE 
+                    WHEN cu.test_completed = true AND u.test_completed = true THEN
+                        ROUND(
+                            ((45 - (
+                                ABS(cu.openness - u.openness) +
+                                ABS(cu.conscientiousness - u.conscientiousness) +
+                                ABS(cu.extraversion - u.extraversion) +
+                                ABS(cu.agreeableness - u.agreeableness) +
+                                ABS(cu.neuroticism - u.neuroticism)
+                            )) / 45.0) * 100
+                        )
+                    ELSE NULL 
+                END AS compatibility_percent
             FROM game_rooms gr
             JOIN users u ON gr.created_by = u.id
+            JOIN users cu ON cu.id = $1
             LEFT JOIN room_players rp ON gr.id = rp.room_id
             WHERE gr.status = 'waiting'
         `;
-        let params = [];
+
+        let params = [currentUserId];
+        let paramIndex = 2;
+
         if (game_name) {
-            query += ` AND gr.game_name = $1`;
+            query += ` AND gr.game_name = $${paramIndex}`;
             params.push(game_name);
         }
-        query += ` GROUP BY gr.id, u.username ORDER BY gr.created_at DESC`;
+
+        // Группируем по правильным полям, включая данные тестов и пользователей
+        query += ` 
+            GROUP BY gr.id, u.username, u.openness, u.conscientiousness, u.extraversion, u.agreeableness, u.neuroticism, cu.test_completed, cu.openness, cu.conscientiousness, cu.extraversion, cu.agreeableness, cu.neuroticism, u.test_completed
+            ORDER BY gr.created_at DESC
+        `;
+
         const result = await pool.query(query, params);
         res.json(result.rows);
+
     } catch (error) {
-        console.error('Error fetching rooms:', error);
+        console.error('Error fetching rooms with compatibility:', error);
         res.status(500).json({ error: 'Failed to fetch rooms' });
     }
 });
