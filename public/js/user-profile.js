@@ -142,13 +142,16 @@ class UserProfileViewer {
             <div class="profile-card">
                 <div class="profile-info">
                     <div class="avatar-section">
-                        <div class="avatar-container">
-                            ${userData.avatar_url ?
-            `<img src="${userData.avatar_url}" class="avatar-image" alt="${userData.username}">` :
+    <div class="avatar-container">
+        ${userData.avatar_url ?
+            `<img src="${userData.avatar_url}" 
+                  class="avatar-image" 
+                  alt="${userData.username}" 
+                  onerror="this.onerror=null; this.src='/uploads/default-avatar.png';">` :
             `<div class="avatar-placeholder"><i class="fas fa-user"></i></div>`
         }
-                        </div>
-                    </div>
+    </div>
+</div>
                     <div class="user-details">
                         <h2>${this.escapeHtml(userData.username)}</h2>
                         <p class="user-email">${this.escapeHtml(userData.email)}</p>
