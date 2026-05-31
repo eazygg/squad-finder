@@ -36,10 +36,23 @@
             <i class="fas fa-plus"></i> Создать комнату
         </button>
 
-        <div class="filter-section">
-            <select id="gameFilter" class="filter-select">
-                <option value="">Все игры</option>
-            </select>
+        <div class="filter-section" style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+            <div class="filter-group">
+                <select id="gameFilter" class="filter-select">
+                    <option value="">Все игры</option>
+                </select>
+            </div>
+
+            <div class="filter-group" style="display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.05); padding: 5px 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
+                <label for="compatibilityFilter" style="font-size: 14px; color: rgba(255,255,255,0.8); white-space: nowrap;">
+                    <i class="fas fa-brain" style="color: #a855f7; margin-right: 5px;"></i> Совместимость от:
+                </label>
+                <input type="range" id="compatibilityFilter" min="0" max="100" value="0" step="5"
+                       oninput="this.nextElementSibling.value = this.value + '%'"
+                       style="cursor: pointer; accent-color: #5865F2; width: 120px;">
+                <output style="min-width: 40px; font-weight: bold; color: #5865F2; font-size: 14px;">0%</output>
+            </div>
+
             <button id="refreshBtn" class="btn-secondary">
                 <i class="fas fa-sync-alt"></i> Обновить
             </button>

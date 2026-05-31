@@ -170,6 +170,12 @@ class RoomManager {
         const voiceRecordBtn = document.getElementById('voiceRecordBtn');
         const attachFileBtn = document.getElementById('attachFileBtn');
         const fileInput = document.getElementById('fileInput');
+        const compFilter = document.getElementById('compatibilityFilter');
+        if (compFilter) {
+            compFilter.addEventListener('input', () => {
+                this.filterRooms();
+            });
+        }
 
         if (voiceRecordBtn) {
             voiceRecordBtn.addEventListener('click', () => {
@@ -268,7 +274,30 @@ class RoomManager {
             showToast('Ошибка отправки голосового сообщения', 'error');
         }
     }
+    filterRooms() {
+        const gameFilter = document.getElementById('gameFilter').value;
 
+        // Получаем значение ползунка совместимости (если его нет на странице, то 0)
+        const compFilterEl = document.getElementById('compatibilityFilter');
+        const minCompatibility = compFilterEl ? parseInt(compFilterEl.value) : 0;
+
+        // Фильтруем массив доступных комнат
+        const filteredRooms = this.rooms.filter(room => {
+            // 1. Проверка соответствия выбранной игре
+            const matchesGame = !gameFilter || room.game_id == gameFilter;
+
+            // 2. Проверка совместимости с создателем:
+            // Если хост или текущий пользователь не прошли тест, compatibility_percent будет null.
+            // Чтобы такие комнаты не пропадали при значении ползунка 0%, приравниваем null к 0.
+            const roomComp = room.compatibility_percent !== null ? room.compatibility_percent : 0;
+            const matchesCompatibility = roomComp >= minCompatibility;
+
+            return matchesGame && matchesCompatibility;
+        });
+
+        // Передаем отфильтрованные данные в метод отрисовки интерфейса
+        this.displayRooms(filteredRooms);
+    }
 
     async sendImageMessage(file) {
         if (!this.currentRoom) return;
@@ -494,16 +523,29 @@ class RoomManager {
         }
     }
 
-    displayRooms() {
+    displayRooms(roomsToShow) {
+        // Используем переданный отфильтрованный массив roomsToShow,
+        // а если его забыли передать — берем дефолтный this.rooms
+        const listToRender = roomsToShow || this.rooms;
         const container = document.getElementById('roomsContainer');
         if (!container) return;
 
-        if (this.rooms.length === 0) {
-            container.innerHTML = '<div class="no-rooms">Нет доступных комнат</div>';
+        if (listToRender.length === 0) {
+            container.innerHTML = '<div class="no-rooms">Нет доступных комнат по выбранным фильтрам</div>';
             return;
         }
 
-        container.innerHTML = this.rooms.map(room => `
+        container.innerHTML = listToRender.map(room => {
+            // Формируем бейджик совместимости
+            const compatibilityBadge = room.compatibility_percent !== null
+                ? `<div class="room-compatibility-badge" style="background: rgba(168, 85, 247, 0.15); color: #a855f7; padding: 4px 10px; border-radius: 6px; font-size: 13px; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; border: 1px solid rgba(168, 85, 247, 0.3);">
+                <i class="fas fa-brain"></i> Совместимость с хостом: <strong>${room.compatibility_percent}%</strong>
+               </div>`
+                : `<div class="room-compatibility-badge" style="background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.4); padding: 4px 10px; border-radius: 6px; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; margin-top: 8px;">
+                <i class="fas fa-user-slash"></i> Хост не прошёл тест
+               </div>`;
+
+            return `
             <div class="room-card">
                 <div class="room-header">
                     <h4>"${this.escapeHtml(room.name)}"</h4>
@@ -512,18 +554,21 @@ class RoomManager {
                 <div class="room-info">
                     <p><strong>Игра:</strong> ${this.escapeHtml(room.game_name)}</p>
                     <p><strong>Игроков:</strong> ${room.current_players}/${room.max_players}</p>
-                    <p><strong>Создатель:</strong> ${this.escapeHtml(room.creator_name)}</p>
+                    <p><strong>Создатель:</strong> ${this.escapeHtml(room.creator_username || room.creator_name)}</p>
+                    
+                    ${compatibilityBadge}
                 </div>
                 <div class="room-actions">
                     ${room.current_players < room.max_players ?
-            `<button class="btn btn-primary btn-sm" onclick="roomManager.joinRoom(${room.id}, '${this.escapeHtml(room.name).replace(/'/g, "\\'")}')">
+                `<button class="btn btn-primary btn-sm" onclick="roomManager.joinRoom(${room.id}, '${this.escapeHtml(room.name).replace(/'/g, "\\'")}')">
                             Присоединиться
                         </button>` :
-            `<button class="btn btn-secondary btn-sm" disabled>Комната заполнена</button>`
-        }
+                `<button class="btn btn-secondary btn-sm" disabled>Комната заполнена</button>`
+            }
                 </div>
             </div>
-        `).join('');
+        `;
+        }).join('');
     }
 
     displayMyRooms() {
