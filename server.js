@@ -37,7 +37,7 @@ if (!fs.existsSync(uploadsDir)) {
 // Middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
+app.use('/uploads', express.static(uploadsDir));
 
 
 //voice
