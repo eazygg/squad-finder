@@ -235,11 +235,10 @@ class UserSearch {
 }
 
 // Глобальный экземпляр - только один!
-let userSearch = null;
+window.userSearch = null;
 
 // Инициализация при загрузке
 document.addEventListener('DOMContentLoaded', () => {
-    if (!userSearch) {
-        userSearch = new UserSearch();
-    }
+    // 2. Убираем const/let перед именем переменной, чтобы записать именно в глобальный объект
+    window.userSearch = new UserSearch();
 });
