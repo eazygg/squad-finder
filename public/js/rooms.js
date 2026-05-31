@@ -589,10 +589,13 @@ class RoomManager {
             title.textContent = `Чат: ${roomName}`;
             modal.style.display = 'block';
 
+            this.switchToChatTab();
+            this.initChatTabs();  // ✅ Убедитесь, что эта строка есть
+
             this.socket.emit('join_room_chat', roomId);
+            this.loadRoomPlayers(roomId);
         }
     }
-
     closeChat() {
         if (this.currentRoom) {
             this.socket.emit('leave_room_chat', this.currentRoom);
@@ -778,25 +781,34 @@ class RoomManager {
         const chatContent = document.getElementById('chatContent');
         const playersContent = document.getElementById('playersContent');
 
-        if (chatTab && playersTab) {
-            chatTab.addEventListener('click', () => {
-                chatTab.classList.add('active');
-                playersTab.classList.remove('active');
-                chatContent.style.display = 'flex';
-                playersContent.style.display = 'none';
-            });
-
-            playersTab.addEventListener('click', () => {
-                playersTab.classList.add('active');
-                chatTab.classList.remove('active');
-                chatContent.style.display = 'none';
-                playersContent.style.display = 'flex';
-
-                if (this.currentRoom) {
-                    this.loadRoomPlayers(this.currentRoom);
-                }
-            });
+        if (!chatTab || !playersTab) {
+            console.log('Tabs not found');
+            return;
         }
+
+        // Удаляем старые обработчики, чтобы не было дублирования
+        const newChatTab = chatTab.cloneNode(true);
+        const newPlayersTab = playersTab.cloneNode(true);
+        chatTab.parentNode.replaceChild(newChatTab, chatTab);
+        playersTab.parentNode.replaceChild(newPlayersTab, playersTab);
+
+        newChatTab.addEventListener('click', () => {
+            newChatTab.classList.add('active');
+            newPlayersTab.classList.remove('active');
+            chatContent.style.display = 'flex';
+            playersContent.style.display = 'none';
+        });
+
+        newPlayersTab.addEventListener('click', () => {
+            newPlayersTab.classList.add('active');
+            newChatTab.classList.remove('active');
+            chatContent.style.display = 'none';
+            playersContent.style.display = 'flex';
+
+            if (this.currentRoom) {
+                this.loadRoomPlayers(this.currentRoom);
+            }
+        });
     }
 
     async loadRoomPlayers(roomId) {
