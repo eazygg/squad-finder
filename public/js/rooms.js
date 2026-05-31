@@ -253,18 +253,23 @@ class RoomManager {
             const data = await response.json();
 
             if (data.success) {
+                const messageText = `[audio]${data.fileUrl}[/audio]`;
+
+                // Отправляем через сокет
                 this.socket.emit('send_room_message', {
                     roomId: this.currentRoom,
-                    message: `[audio]${data.fileUrl}[/audio]`
+                    message: messageText
                 });
-            } else {
-                showToast('Ошибка отправки голосового сообщения', 'error');
+
+                // ✅ Добавляем сообщение ЛОКАЛЬНО сразу (без перезагрузки)
+                this.addLocalMessage(messageText, 'audio');
             }
         } catch (error) {
             console.error('Error sending audio:', error);
             showToast('Ошибка отправки голосового сообщения', 'error');
         }
     }
+
 
     async sendImageMessage(file) {
         if (!this.currentRoom) return;
@@ -284,18 +289,52 @@ class RoomManager {
             const data = await response.json();
 
             if (data.success) {
+                const messageText = `[image]${data.fileUrl}[/image]`;
+
                 this.socket.emit('send_room_message', {
                     roomId: this.currentRoom,
-                    message: `[image]${data.fileUrl}[/image]`
+                    message: messageText
                 });
-            } else {
-                showToast('Ошибка отправки изображения', 'error');
+
+                // ✅ Добавляем сообщение ЛОКАЛЬНО
+                this.addLocalMessage(messageText, 'image');
             }
         } catch (error) {
             console.error('Error sending image:', error);
             showToast('Ошибка отправки изображения', 'error');
         }
     }
+
+    addLocalMessage(messageText, type) {
+        const container = document.getElementById('roomChatMessages');
+        if (!container) return;
+
+        // Убираем заглушку "Нет сообщений"
+        const noMessages = container.querySelector('.no-messages');
+        if (noMessages) noMessages.remove();
+
+        let content = '';
+        if (type === 'audio') {
+            const audioUrl = messageText.match(/\[audio\](.*?)\[\/audio\]/)[1];
+            content = `<audio controls style="max-width: 200px; height: 40px;"><source src="${audioUrl}" type="audio/webm"></audio>`;
+        } else if (type === 'image') {
+            const imageUrl = messageText.match(/\[image\](.*?)\[\/image\]/)[1];
+            content = `<img src="${imageUrl}" style="max-width: 200px; max-height: 150px; border-radius: 8px; cursor: pointer;" onclick="window.open('${imageUrl}', '_blank')">`;
+        } else {
+            content = this.escapeHtml(messageText);
+        }
+
+        const messageElement = document.createElement('div');
+        messageElement.className = `message my-message`;
+        messageElement.innerHTML = `
+        <div class="message-sender">${this.escapeHtml(this.currentUser.username)}</div>
+        <div class="message-text">${content}</div>
+        <div class="message-time">${new Date().toLocaleTimeString()}</div>
+    `;
+        container.appendChild(messageElement);
+        container.scrollTop = container.scrollHeight;
+    }
+
 
     handleFileSelect(event) {
         const file = event.target.files[0];
@@ -622,6 +661,9 @@ class RoomManager {
 
         if (!message) return;
 
+        // ✅ Добавляем локально сразу
+        this.addLocalMessage(message, 'text');
+
         this.socket.emit('send_room_message', {
             roomId: this.currentRoom,
             message: message
@@ -638,13 +680,35 @@ class RoomManager {
         if (messageData.roomId === this.currentRoom) {
             const container = document.getElementById('roomChatMessages');
             if (container) {
+                // Убираем заглушку
+                const noMessages = container.querySelector('.no-messages');
+                if (noMessages) noMessages.remove();
+
+                let content = this.escapeHtml(messageData.message_text);
+
+                // Обработка аудио
+                if (messageData.message_text.includes('[audio]')) {
+                    const match = messageData.message_text.match(/\[audio\](.*?)\[\/audio\]/);
+                    if (match) {
+                        content = `<audio controls style="max-width: 200px; height: 40px;"><source src="${match[1]}" type="audio/webm"></audio>`;
+                    }
+                }
+                // Обработка изображений
+                else if (messageData.message_text.includes('[image]')) {
+                    const match = messageData.message_text.match(/\[image\](.*?)\[\/image\]/);
+                    if (match) {
+                        content = `<img src="${match[1]}" style="max-width: 200px; max-height: 150px; border-radius: 8px; cursor: pointer;" onclick="window.open('${match[1]}', '_blank')">`;
+                    }
+                }
+
+                const messageClass = messageData.userId === this.currentUser?.id ? 'my-message' : 'other-message';
                 const messageElement = document.createElement('div');
-                messageElement.className = `message ${messageData.userId === this.currentUser?.id ? 'my-message' : 'other-message'}`;
+                messageElement.className = `message ${messageClass}`;
                 messageElement.innerHTML = `
-                    <div class="message-sender">${this.escapeHtml(messageData.username)}</div>
-                    <div class="message-text">${this.escapeHtml(messageData.message_text)}</div>
-                    <div class="message-time">${new Date(messageData.created_at).toLocaleTimeString()}</div>
-                `;
+                <div class="message-sender">${this.escapeHtml(messageData.username)}</div>
+                <div class="message-text">${content}</div>
+                <div class="message-time">${new Date(messageData.created_at).toLocaleTimeString()}</div>
+            `;
                 container.appendChild(messageElement);
                 container.scrollTop = container.scrollHeight;
             }
