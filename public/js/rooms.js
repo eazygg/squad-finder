@@ -537,13 +537,15 @@ class RoomManager {
 
         container.innerHTML = listToRender.map(room => {
             // Формируем бейджик совместимости
-            const compatibilityBadge = room.compatibility_percent !== null
+            const hasCompatibility = room.compatibility_percent !== undefined && room.compatibility_percent !== null;
+
+            const compatibilityBadge = hasCompatibility
                 ? `<div class="room-compatibility-badge" style="background: rgba(168, 85, 247, 0.15); color: #a855f7; padding: 4px 10px; border-radius: 6px; font-size: 13px; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; border: 1px solid rgba(168, 85, 247, 0.3);">
-                <i class="fas fa-brain"></i> Совместимость с хостом: <strong>${room.compatibility_percent}%</strong>
-               </div>`
+        <i class="fas fa-brain"></i> Совместимость с хостом: <strong>${room.compatibility_percent}%</strong>
+       </div>`
                 : `<div class="room-compatibility-badge" style="background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.4); padding: 4px 10px; border-radius: 6px; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; margin-top: 8px;">
-                <i class="fas fa-user-slash"></i> Хост не прошёл тест
-               </div>`;
+        <i class="fas fa-user-slash"></i> Совместимость: нет данных
+       </div>`;
 
             return `
             <div class="room-card">

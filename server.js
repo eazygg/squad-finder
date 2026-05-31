@@ -574,6 +574,64 @@ async function startServer() {
 // Временный эндпоинт для установки русских вопросов
 // ВРЕМЕННЫЙ ЭНДПОИНТ ДЛЯ УСТАНОВКИ РУССКИХ ВОПРОСОВ
 // (Удалить после использования)
+
+
+// Внутри server.js замени код эндпоинта получения комнат на этот:
+app.get('/api/communities/rooms', async (req, res) => {
+    try {
+        // Достаем токен из заголовков, чтобы узнать ID текущего пользователя
+        const authHeader = req.headers['authorization'];
+        const token = authHeader && authHeader.split(' ')[1];
+
+        if (!token) return res.status(401).json({ error: 'Требуется авторизация' });
+
+        // В твоем проекте JWT_SECRET берется из process.env
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+        const currentUserId = decoded.userId;
+
+        // SQL-запрос, который рассчитывает совместимость прямо в базе данных
+        const query = `
+            SELECT 
+                gr.*,
+                g.name AS game_name,
+                u.username AS creator_username,
+                u.avatar_url AS creator_avatar,
+                u.test_completed AS creator_test_completed,
+                CASE 
+                    WHEN cu.test_completed = true AND u.test_completed = true THEN
+                        ROUND(
+                            ((45 - (
+                                ABS(cu.openness - u.openness) +
+                                ABS(cu.conscientiousness - u.conscientiousness) +
+                                ABS(cu.extraversion - u.extraversion) +
+                                ABS(cu.agreeableness - u.agreeableness) +
+                                ABS(cu.neuroticism - u.neuroticism)
+                            )) / 45.0) * 100
+                        )
+                    ELSE NULL 
+                END AS compatibility_percent
+            FROM game_rooms gr
+            JOIN users u ON gr.creator_id = u.id
+            JOIN users cu ON cu.id = $1
+            LEFT JOIN games g ON gr.game_id = g.id -- Если у тебя есть таблица игр для game_name
+            ORDER BY gr.created_at DESC;
+        `;
+
+        const result = await pool.query(query, [currentUserId]);
+
+        res.json({
+            success: true,
+            rooms: result.rows
+        });
+
+    } catch (error) {
+        console.error('Ошибка бэкенда при получении комнат:', error);
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
+});
+
+
+
 app.get('/api/setup-russian-questions', async (req, res) => {
     try {
         // Очищаем старые вопросы
