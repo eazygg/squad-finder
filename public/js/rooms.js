@@ -261,8 +261,7 @@ class RoomManager {
                     message: messageText
                 });
 
-                // ✅ Добавляем сообщение ЛОКАЛЬНО сразу (без перезагрузки)
-                this.addLocalMessage(messageText, 'audio');
+                // this.addLocalMessage(messageText, 'audio');
             }
         } catch (error) {
             console.error('Error sending audio:', error);
@@ -296,8 +295,8 @@ class RoomManager {
                     message: messageText
                 });
 
-                // ✅ Добавляем сообщение ЛОКАЛЬНО
-                this.addLocalMessage(messageText, 'image');
+                // // ✅ Добавляем сообщение ЛОКАЛЬНО
+                // this.addLocalMessage(messageText, 'image');
             }
         } catch (error) {
             console.error('Error sending image:', error);
@@ -661,8 +660,8 @@ class RoomManager {
 
         if (!message) return;
 
-        // ✅ Добавляем локально сразу
-        this.addLocalMessage(message, 'text');
+        // // ✅ Добавляем локально сразу
+        // this.addLocalMessage(message, 'text');
 
         this.socket.emit('send_room_message', {
             roomId: this.currentRoom,
