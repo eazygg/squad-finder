@@ -924,34 +924,39 @@ class Profile {
         const avatarImg = document.getElementById('avatarImg');
         const avatarPlaceholder = document.getElementById('avatarPlaceholder');
 
-        if (avatarUrl && avatarUrl !== 'null' && avatarUrl !== 'undefined') {
+        if (avatarUrl && avatarUrl !== 'null' && avatarUrl !== 'undefined' && avatarUrl.trim() !== '') {
             const timestamp = new Date().getTime();
             const avatarUrlWithTimestamp = avatarUrl + '?t=' + timestamp;
 
-            if (avatarImg) {
-                avatarImg.src = avatarUrlWithTimestamp;
-                avatarImg.style.display = 'block';
-                avatarImg.onload = function() {
-                    console.log('Аватар успешно загружен!');
-                };
-                avatarImg.onerror = function() {
-                    console.error('Ошибка загрузки аватара:', avatarUrlWithTimestamp);
+            avatarImg.src = avatarUrlWithTimestamp;
+            avatarImg.style.display = 'block';
+            avatarPlaceholder.style.display = 'none';
+
+            avatarImg.onload = () => {
+                console.log('Аватар успешно загружен');
+            };
+
+            avatarImg.onerror = () => {
+                console.log('Ошибка загрузки аватара, показываем default-avatar.png');
+                // Если аватар не загрузился - показываем default-avatar.png
+                avatarImg.src = '/uploads/default-avatar.png?t=' + timestamp;
+                avatarImg.onerror = () => {
+                    // Если и default-avatar.png не загрузился - показываем плейсхолдер
                     avatarImg.style.display = 'none';
-                    if (avatarPlaceholder) {
-                        avatarPlaceholder.style.display = 'flex';
-                    }
+                    avatarPlaceholder.style.display = 'flex';
                 };
-            }
-            if (avatarPlaceholder) {
-                avatarPlaceholder.style.display = 'none';
-            }
+            };
         } else {
-            if (avatarImg) {
+            // Если нет avatar_url - пробуем загрузить default-avatar.png
+            const timestamp = new Date().getTime();
+            avatarImg.src = '/uploads/default-avatar.png?t=' + timestamp;
+            avatarImg.style.display = 'block';
+            avatarPlaceholder.style.display = 'none';
+
+            avatarImg.onerror = () => {
                 avatarImg.style.display = 'none';
-            }
-            if (avatarPlaceholder) {
                 avatarPlaceholder.style.display = 'flex';
-            }
+            };
         }
     }
 
