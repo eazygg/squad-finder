@@ -810,7 +810,8 @@ router.get('/admin/table-data/:tableName', authenticateToken, requireAdmin, asyn
 });
 
 // Экспорт таблицы в CSV
-router.get('/admin/export/:tableName', authenticateToken, requireAdmin, async (req, res) => {
+// Экспорт в JSON (более надёжный)
+router.get('/admin/export-json/:tableName', authenticateToken, requireAdmin, async (req, res) => {
     try {
         const { tableName } = req.params;
 
@@ -822,61 +823,33 @@ router.get('/admin/export/:tableName', authenticateToken, requireAdmin, async (r
 
         const result = await pool.query(`SELECT * FROM ${tableName} ORDER BY id DESC`);
 
-        if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Нет данных для экспорта' });
-        }
-
-        const columns = Object.keys(result.rows[0]);
-
-        // Простая и надежная функция экранирования CSV
-        const escapeCSV = (value) => {
-            if (value === null || value === undefined) return '';
-            let str = String(value);
-            // Заменяем все кавычки на двойные кавычки
-            str = str.replace(/"/g, '""');
-            // Если есть запятая, кавычка или перенос строки - оборачиваем в кавычки
-            if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
-                str = '"' + str + '"';
-            }
-            return str;
-        };
-
-        // Создаем массив строк CSV
-        const csvRows = [];
-
-        // Добавляем заголовки
-        csvRows.push(columns.map(col => escapeCSV(col)).join(','));
-
-        // Добавляем данные
-        for (const row of result.rows) {
-            const rowValues = columns.map(col => {
-                let val = row[col];
-                if (val === null || val === undefined) return '';
-                if (col.includes('_at') && val) {
-                    // Форматируем дату в простой строке
-                    const d = new Date(val);
-                    val = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
+        // Форматируем даты для JSON
+        const data = result.rows.map(row => {
+            const newRow = {};
+            for (const [key, value] of Object.entries(row)) {
+                if (key.includes('_at') && value) {
+                    const d = new Date(value);
+                    newRow[key] = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
+                } else {
+                    newRow[key] = value;
                 }
-                return escapeCSV(val);
-            });
-            csvRows.push(rowValues.join(','));
-        }
+            }
+            return newRow;
+        });
 
-        // Объединяем строки с переносом \r\n для Windows
-        const csvString = csvRows.join('\r\n');
-
-        // Отправляем с правильной кодировкой
-        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-        res.setHeader('Content-Disposition', `attachment; filename="${tableName}_${Date.now()}.csv"`);
-        res.setHeader('Cache-Control', 'no-cache');
-        // Добавляем BOM для корректного отображения русского текста в Excel
-        res.send('\uFEFF' + csvString);
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.setHeader('Content-Disposition', `attachment; filename="${tableName}_${Date.now()}.json"`);
+        res.send(JSON.stringify(data, null, 2));
 
     } catch (error) {
-        console.error('Error exporting table:', error);
+        console.error('Error exporting JSON:', error);
         res.status(500).json({ error: 'Ошибка экспорта данных' });
     }
-});// Получить статистику по всем таблицам
+});
+
+
+
+
 router.get('/admin/db-stats', authenticateToken, requireAdmin, async (req, res) => {
     try {
         const tables = ['users', 'game_rooms', 'room_messages', 'private_messages', 'user_games', 'test_history'];

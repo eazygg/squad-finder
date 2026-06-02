@@ -489,6 +489,33 @@ class AdminPanel {
         }
     }
 
+
+    async exportJson() {
+        const tableName = document.getElementById('tableSelect')?.value || 'users';
+
+        try {
+            const response = await fetch(`/api/profile/admin/export-json/${tableName}`, {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            });
+
+            if (response.ok) {
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${tableName}_${Date.now()}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+                showToast('Экспорт JSON завершен', 'success');
+            }
+        } catch (error) {
+            console.error('Error exporting JSON:', error);
+            showToast('Ошибка экспорта', 'error');
+        }
+    }
+
     escapeHtml(text) {
         if (!text) return '';
         const div = document.createElement('div');
