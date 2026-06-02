@@ -4,6 +4,7 @@ class AdminPanel {
         if (!this.checkAuth()) return;
 
         this.currentUser = null;
+        this.currentOffset = 0;
         this.init();
     }
 
@@ -32,6 +33,7 @@ class AdminPanel {
         await this.loadStats();
         await this.loadUsers();
         await this.loadRooms();
+        await this.loadDbStats();
         this.bindEvents();
     }
 
@@ -178,6 +180,188 @@ class AdminPanel {
         document.getElementById('roomsContainer').innerHTML = roomsHtml;
     }
 
+    // ==================== ДОБАВЛЕННЫЕ МЕТОДЫ ДЛЯ БАЗЫ ДАННЫХ ====================
+
+    async loadDbStats() {
+        try {
+            const response = await fetch('/api/profile/admin/db-stats', {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+
+            if (response.ok) {
+                const stats = await response.json();
+                this.displayDbStats(stats);
+            }
+        } catch (error) {
+            console.error('Error loading db stats:', error);
+        }
+    }
+
+    displayDbStats(stats) {
+        const statsContainer = document.getElementById('dbStatsContainer');
+        if (!statsContainer) return;
+
+        statsContainer.innerHTML = `
+            <div class="db-stats-grid">
+                <div class="db-stat-card">
+                    <div class="db-stat-number">${stats.users || 0}</div>
+                    <div>Пользователей</div>
+                </div>
+                <div class="db-stat-card">
+                    <div class="db-stat-number">${stats.game_rooms || 0}</div>
+                    <div>Игровых комнат</div>
+                </div>
+                <div class="db-stat-card">
+                    <div class="db-stat-number">${stats.room_messages || 0}</div>
+                    <div>Сообщений в чатах</div>
+                </div>
+                <div class="db-stat-card">
+                    <div class="db-stat-number">${stats.private_messages || 0}</div>
+                    <div>Личных сообщений</div>
+                </div>
+                <div class="db-stat-card">
+                    <div class="db-stat-number">${stats.active_users_7days || 0}</div>
+                    <div>Активных за 7 дней</div>
+                </div>
+                <div class="db-stat-card">
+                    <div class="db-stat-number">${stats.messages_today || 0}</div>
+                    <div>Сообщений сегодня</div>
+                </div>
+            </div>
+        `;
+    }
+
+    async loadTableData() {
+        const tableName = document.getElementById('tableSelect')?.value || 'users';
+        const search = document.getElementById('tableSearch')?.value || '';
+        const limit = 50;
+        const offset = this.currentOffset || 0;
+
+        try {
+            let url = `/api/profile/admin/table-data/${tableName}?limit=${limit}&offset=${offset}`;
+            if (search) url += `&search=${encodeURIComponent(search)}`;
+
+            const response = await fetch(url, {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                this.displayTableData(data);
+                this.updatePagination(data.pagination);
+
+                document.getElementById('rowCount').innerHTML =
+                    `<i class="fas fa-database"></i> Всего записей: ${data.pagination.total}`;
+            }
+        } catch (error) {
+            console.error('Error loading table data:', error);
+            document.getElementById('dataTable').innerHTML = '<div class="error">❌ Ошибка загрузки данных</div>';
+        }
+    }
+
+    displayTableData(data) {
+        const container = document.getElementById('dataTable');
+        if (!container) return;
+
+        if (!data.data || data.data.length === 0) {
+            container.innerHTML = `
+                <thead><tr><th>Нет данных</th></thead>
+                <tbody><tr><td>В таблице нет записей</td></tr></tbody>
+            `;
+            return;
+        }
+
+        const columns = data.columns;
+
+        const thead = `<thead><tr>${columns.map(col =>
+            `<th>${this.getColumnName(col)}</th>`
+        ).join('')}</tr></thead>`;
+
+        const tbody = `<tbody>${data.data.map(row => `
+            <tr>${columns.map(col => `
+                <td title="${this.escapeHtml(String(row[col] || '-'))}">
+                    ${this.truncateText(row[col])}
+                </td>
+            `).join('')}</tr>
+        `).join('')}</tbody>`;
+
+        container.innerHTML = thead + tbody;
+    }
+
+    getColumnName(col) {
+        const names = {
+            id: 'ID',
+            email: 'Email',
+            username: 'Имя пользователя',
+            created_at: 'Создан',
+            last_login: 'Последний вход',
+            test_completed: 'Тест пройден',
+            game_name: 'Игра',
+            name: 'Название комнаты',
+            message_text: 'Сообщение',
+            from_user_id: 'От кого',
+            to_user_id: 'Кому',
+            is_read: 'Прочитано',
+            question_text: 'Вопрос',
+            trait: 'Черта личности',
+            score: 'Балл',
+            avatar_url: 'Аватар',
+            status: 'Статус',
+            max_players: 'Макс. игроков',
+            current_players: 'Текущих игроков'
+        };
+        return names[col] || col;
+    }
+
+    truncateText(value) {
+        if (value === null || value === undefined) return '-';
+        if (typeof value === 'object') return JSON.stringify(value).substring(0, 50);
+        const str = String(value);
+        return str.length > 50 ? str.substring(0, 47) + '...' : str;
+    }
+
+    updatePagination(pagination) {
+        const prevBtn = document.getElementById('prevPageBtn');
+        const nextBtn = document.getElementById('nextPageBtn');
+        const pageInfo = document.getElementById('pageInfo');
+
+        const currentPage = Math.floor(pagination.offset / pagination.limit) + 1;
+        const totalPages = Math.ceil(pagination.total / pagination.limit);
+
+        pageInfo.textContent = `Страница ${currentPage} из ${totalPages || 1}`;
+
+        if (prevBtn) prevBtn.disabled = currentPage <= 1;
+        if (nextBtn) nextBtn.disabled = !pagination.hasMore;
+    }
+
+    async exportTable() {
+        const tableName = document.getElementById('tableSelect')?.value || 'users';
+
+        try {
+            const response = await fetch(`/api/profile/admin/export/${tableName}`, {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            });
+
+            if (response.ok) {
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${tableName}_${Date.now()}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+                showToast('Экспорт завершен', 'success');
+            }
+        } catch (error) {
+            console.error('Error exporting:', error);
+            showToast('Ошибка экспорта', 'error');
+        }
+    }
+
     async deleteRoom(roomId, roomName) {
         const confirmed = await dialog.confirm(`Вы уверены, что хотите удалить комнату "${roomName}"?`, 'Подтверждение удаления');
         if (!confirmed) return;
@@ -231,7 +415,52 @@ class AdminPanel {
     }
 
     bindEvents() {
-        // Навигация уже работает через onclick в HTML
+        const tableSelect = document.getElementById('tableSelect');
+        const tableSearch = document.getElementById('tableSearch');
+        const refreshBtn = document.getElementById('refreshTableBtn');
+        const exportBtn = document.getElementById('exportBtn');
+        const prevPageBtn = document.getElementById('prevPageBtn');
+        const nextPageBtn = document.getElementById('nextPageBtn');
+
+        if (tableSelect) {
+            tableSelect.addEventListener('change', () => {
+                this.currentOffset = 0;
+                this.loadTableData();
+            });
+        }
+
+        if (tableSearch) {
+            let timeout;
+            tableSearch.addEventListener('input', () => {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => {
+                    this.currentOffset = 0;
+                    this.loadTableData();
+                }, 500);
+            });
+        }
+
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', () => this.loadTableData());
+        }
+
+        if (exportBtn) {
+            exportBtn.addEventListener('click', () => this.exportTable());
+        }
+
+        if (prevPageBtn) {
+            prevPageBtn.addEventListener('click', () => {
+                this.currentOffset = Math.max(0, (this.currentOffset || 0) - 50);
+                this.loadTableData();
+            });
+        }
+
+        if (nextPageBtn) {
+            nextPageBtn.addEventListener('click', () => {
+                this.currentOffset = (this.currentOffset || 0) + 50;
+                this.loadTableData();
+            });
+        }
     }
 
     escapeHtml(text) {
@@ -244,12 +473,10 @@ class AdminPanel {
 
 // Вспомогательные функции
 function showSection(sectionName) {
-    // Скрываем все секции
     document.querySelectorAll('.admin-section').forEach(section => {
         section.style.display = 'none';
     });
 
-    // Показываем выбранную секцию
     const targetSection = document.getElementById(`${sectionName}-section`);
     if (targetSection) {
         targetSection.style.display = 'block';
@@ -259,7 +486,6 @@ function showSection(sectionName) {
 // Глобальный экземпляр
 let adminPanel;
 
-// Инициализация
 document.addEventListener('DOMContentLoaded', () => {
     adminPanel = new AdminPanel();
 });

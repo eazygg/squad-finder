@@ -43,6 +43,13 @@
                     <span>Комнаты</span>
                 </a>
             </div>
+            <div class="nav-section">
+                <h3>База данных</h3>
+                <a href="#" class="nav-link" onclick="showSection('database')">
+                    <i class="fas fa-database"></i>
+                    <span>Просмотр БД</span>
+                </a>
+            </div>
         </nav>
     </div>
 
@@ -83,11 +90,67 @@
                 </div>
             </div>
         </div>
+
+        <!-- Новая секция: Просмотр базы данных -->
+        <div id="database-section" class="admin-section" style="display: none;">
+            <h2>
+                <i class="fas fa-database"></i>
+                Просмотр базы данных
+            </h2>
+
+            <div class="db-controls">
+                <select id="tableSelect" class="filter-select">
+                    <option value="users">Пользователи</option>
+                    <option value="game_rooms">Игровые комнаты</option>
+                    <option value="room_messages">Сообщения в комнатах</option>
+                    <option value="private_messages">Личные сообщения</option>
+                    <option value="user_games">Игры пользователей</option>
+                    <option value="test_history">История тестов</option>
+                </select>
+
+                <input type="text" id="tableSearch" placeholder="Поиск..." class="filter-select" style="width: 200px;">
+
+                <div style="display: flex; gap: 10px;">
+                    <button id="exportBtn" class="btn-primary btn-sm">
+                        <i class="fas fa-download"></i> Экспорт CSV
+                    </button>
+                    <button id="refreshTableBtn" class="btn-secondary btn-sm">
+                        <i class="fas fa-sync-alt"></i> Обновить
+                    </button>
+                </div>
+            </div>
+
+            <div id="tableInfo" class="db-info">
+                <span id="rowCount">Загрузка...</span>
+            </div>
+
+            <div class="table-container" style="overflow-x: auto; max-height: 500px;">
+                <table id="dataTable" class="data-table">
+                    <thead>
+                    <tr>
+                        <th>Загрузка...</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr><td colspan="10" class="loading">Загрузка данных...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pagination">
+                <button id="prevPageBtn" class="btn-secondary btn-sm" disabled>
+                    <i class="fas fa-chevron-left"></i> Назад
+                </button>
+                <span id="pageInfo" class="page-info">Страница 1</span>
+                <button id="nextPageBtn" class="btn-secondary btn-sm" disabled>
+                    Вперед <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
     </div>
 </div>
-<script src="/js/chat.js"></script>
+
 <script src="/js/dialog.js"></script>
 <script src="/js/admin.js"></script>
-<script src="/js/voice-controller.js"></script>
 </body>
 </html>

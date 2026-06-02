@@ -732,4 +732,136 @@ router.post('/update-activity', authenticateToken, async (req, res) => {
     }
 });
 
+
+// ==================== АДМИНСКИЙ ЭКСПОРТ ДАННЫХ ====================
+
+// Получить все данные из указанной таблицы
+router.get('/admin/table-data/:tableName', authenticateToken, requireAdmin, async (req, res) => {
+    try {
+        const { tableName } = req.params;
+        const { limit = 100, offset = 0, search = '' } = req.query;
+
+        // Разрешенные таблицы (безопасность)
+        const allowedTables = ['users', 'game_rooms', 'room_messages', 'private_messages', 'user_games', 'test_history'];
+
+        if (!allowedTables.includes(tableName)) {
+            return res.status(403).json({ error: 'Доступ к этой таблице запрещен' });
+        }
+
+        let query = `SELECT * FROM ${tableName}`;
+        let params = [];
+
+        // Поиск по тексту (если есть)
+        if (search && tableName === 'users') {
+            query += ` WHERE username ILIKE $1 OR email ILIKE $1`;
+            params.push(`%${search}%`);
+        } else if (search && tableName === 'game_rooms') {
+            query += ` WHERE name ILIKE $1 OR game_name ILIKE $1`;
+            params.push(`%${search}%`);
+        }
+
+        // Получаем общее количество
+        const countQuery = `SELECT COUNT(*) FROM (${query}) as sub`;
+        const countResult = await pool.query(countQuery, params);
+        const total = parseInt(countResult.rows[0].count);
+
+        // Пагинация
+        query += ` ORDER BY id DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+        params.push(parseInt(limit), parseInt(offset));
+
+        const result = await pool.query(query, params);
+
+        // Получаем названия колонок
+        const columns = result.rows.length > 0 ? Object.keys(result.rows[0]) : [];
+
+        res.json({
+            success: true,
+            tableName,
+            columns,
+            data: result.rows,
+            pagination: {
+                total,
+                limit: parseInt(limit),
+                offset: parseInt(offset),
+                hasMore: (parseInt(offset) + parseInt(limit)) < total
+            }
+        });
+
+    } catch (error) {
+        console.error('Error fetching table data:', error);
+        res.status(500).json({ error: 'Ошибка загрузки данных' });
+    }
+});
+
+// Экспорт таблицы в CSV
+router.get('/admin/export/:tableName', authenticateToken, requireAdmin, async (req, res) => {
+    try {
+        const { tableName } = req.params;
+
+        const allowedTables = ['users', 'game_rooms', 'room_messages', 'private_messages', 'user_games', 'test_history'];
+
+        if (!allowedTables.includes(tableName)) {
+            return res.status(403).json({ error: 'Доступ запрещен' });
+        }
+
+        const result = await pool.query(`SELECT * FROM ${tableName} ORDER BY id DESC`);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Нет данных для экспорта' });
+        }
+
+        // Формируем CSV
+        const columns = Object.keys(result.rows[0]);
+        let csv = columns.join(',') + '\n';
+
+        result.rows.forEach(row => {
+            const values = columns.map(col => {
+                let val = row[col];
+                if (val === null) return '';
+                if (typeof val === 'object') val = JSON.stringify(val);
+                if (typeof val === 'string' && (val.includes(',') || val.includes('"') || val.includes('\n'))) {
+                    val = '"' + val.replace(/"/g, '""') + '"';
+                }
+                return val;
+            });
+            csv += values.join(',') + '\n';
+        });
+
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', `attachment; filename=${tableName}_${Date.now()}.csv`);
+        res.send(csv);
+
+    } catch (error) {
+        console.error('Error exporting table:', error);
+        res.status(500).json({ error: 'Ошибка экспорта данных' });
+    }
+});
+
+// Получить статистику по всем таблицам
+router.get('/admin/db-stats', authenticateToken, requireAdmin, async (req, res) => {
+    try {
+        const tables = ['users', 'game_rooms', 'room_messages', 'private_messages', 'user_games', 'test_history'];
+        const stats = {};
+
+        for (const table of tables) {
+            const result = await pool.query(`SELECT COUNT(*) as count FROM ${table}`);
+            stats[table] = parseInt(result.rows[0].count);
+        }
+
+        // Дополнительная статистика
+        const activeUsers = await pool.query("SELECT COUNT(*) FROM users WHERE last_login > NOW() - INTERVAL '7 days'");
+        stats.active_users_7days = parseInt(activeUsers.rows[0].count);
+
+        const messagesToday = await pool.query("SELECT COUNT(*) FROM room_messages WHERE created_at::date = CURRENT_DATE");
+        stats.messages_today = parseInt(messagesToday.rows[0].count);
+
+        res.json(stats);
+
+    } catch (error) {
+        console.error('Error fetching db stats:', error);
+        res.status(500).json({ error: 'Ошибка получения статистики' });
+    }
+});
+
+
 module.exports = router;
