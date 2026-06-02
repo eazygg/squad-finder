@@ -828,45 +828,55 @@ router.get('/admin/export/:tableName', authenticateToken, requireAdmin, async (r
 
         const columns = Object.keys(result.rows[0]);
 
-        // Функция для правильного экранирования CSV
+        // Простая и надежная функция экранирования CSV
         const escapeCSV = (value) => {
             if (value === null || value === undefined) return '';
             let str = String(value);
-            // Если есть запятая, кавычка или перенос строки — оборачиваем в кавычки
+            // Заменяем все кавычки на двойные кавычки
+            str = str.replace(/"/g, '""');
+            // Если есть запятая, кавычка или перенос строки - оборачиваем в кавычки
             if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
-                str = '"' + str.replace(/"/g, '""') + '"';
+                str = '"' + str + '"';
             }
             return str;
         };
 
-        // Заголовки
-        let csv = columns.map(col => escapeCSV(col)).join(',') + '\n';
+        // Создаем массив строк CSV
+        const csvRows = [];
 
-        // Данные
+        // Добавляем заголовки
+        csvRows.push(columns.map(col => escapeCSV(col)).join(','));
+
+        // Добавляем данные
         for (const row of result.rows) {
             const rowValues = columns.map(col => {
                 let val = row[col];
-                // Форматируем даты для CSV
+                if (val === null || val === undefined) return '';
                 if (col.includes('_at') && val) {
-                    val = new Date(val).toLocaleString('ru-RU');
+                    // Форматируем дату в простой строке
+                    const d = new Date(val);
+                    val = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
                 }
                 return escapeCSV(val);
             });
-            csv += rowValues.join(',') + '\n';
+            csvRows.push(rowValues.join(','));
         }
 
-        // Устанавливаем правильную кодировку для русского текста
+        // Объединяем строки с переносом \r\n для Windows
+        const csvString = csvRows.join('\r\n');
+
+        // Отправляем с правильной кодировкой
         res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-        res.setHeader('Content-Disposition', `attachment; filename=${tableName}_${Date.now()}.csv`);
-        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-        res.send('\uFEFF' + csv); // BOM для поддержки русского языка
+        res.setHeader('Content-Disposition', `attachment; filename="${tableName}_${Date.now()}.csv"`);
+        res.setHeader('Cache-Control', 'no-cache');
+        // Добавляем BOM для корректного отображения русского текста в Excel
+        res.send('\uFEFF' + csvString);
 
     } catch (error) {
         console.error('Error exporting table:', error);
         res.status(500).json({ error: 'Ошибка экспорта данных' });
     }
-});
-// Получить статистику по всем таблицам
+});// Получить статистику по всем таблицам
 router.get('/admin/db-stats', authenticateToken, requireAdmin, async (req, res) => {
     try {
         const tables = ['users', 'game_rooms', 'room_messages', 'private_messages', 'user_games', 'test_history'];
