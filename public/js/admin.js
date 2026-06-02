@@ -444,7 +444,8 @@ class AdminPanel {
         const tableSelect = document.getElementById('tableSelect');
         const tableSearch = document.getElementById('tableSearch');
         const refreshBtn = document.getElementById('refreshTableBtn');
-        const exportBtn = document.getElementById('exportBtn');
+        const exportCsvBtn = document.getElementById('exportCsvBtn');  // ← исправлено
+        const exportJsonBtn = document.getElementById('exportJsonBtn'); // ← исправлено
         const prevPageBtn = document.getElementById('prevPageBtn');
         const nextPageBtn = document.getElementById('nextPageBtn');
 
@@ -470,8 +471,12 @@ class AdminPanel {
             refreshBtn.addEventListener('click', () => this.loadTableData());
         }
 
-        if (exportBtn) {
-            exportBtn.addEventListener('click', () => this.exportTable());
+        if (exportCsvBtn) {  // ← исправлено
+            exportCsvBtn.addEventListener('click', () => this.exportTable());
+        }
+
+        if (exportJsonBtn) {  // ← исправлено
+            exportJsonBtn.addEventListener('click', () => this.exportJson());
         }
 
         if (prevPageBtn) {
@@ -488,7 +493,6 @@ class AdminPanel {
             });
         }
     }
-
 
     async exportJson() {
         const tableName = document.getElementById('tableSelect')?.value || 'users';
