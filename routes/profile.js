@@ -266,13 +266,31 @@ router.post('/create-room', authenticateToken, async (req, res) => {
         const { name, game_name, max_players = 4 } = req.body;
         const userId = req.user.userId;
 
-        const result = await pool.query(
-            `INSERT INTO game_rooms (name, game_name, max_players, created_by, current_players)
-             VALUES ($1, $2, $3, $4, 1) RETURNING *`,
-            [name, game_name, max_players, userId]
+        // Получаем черты личности создателя
+        const userTraits = await pool.query(
+            'SELECT openness, conscientiousness, extraversion, agreeableness, neuroticism FROM users WHERE id = $1',
+            [userId]
         );
 
-        await pool.query('INSERT INTO room_players (room_id, user_id) VALUES ($1, $2)', [result.rows[0].id, userId]);
+        const traits = userTraits.rows[0] || {};
+
+        const result = await pool.query(
+            `INSERT INTO game_rooms (name, game_name, max_players, created_by, current_players,
+             owner_openness, owner_conscientiousness, owner_extraversion, owner_agreeableness, owner_neuroticism)
+             VALUES ($1, $2, $3, $4, 1, $5, $6, $7, $8, $9)
+             RETURNING *`,
+            [name, game_name, max_players, userId,
+                traits.openness || 5,
+                traits.conscientiousness || 5,
+                traits.extraversion || 5,
+                traits.agreeableness || 5,
+                traits.neuroticism || 5]
+        );
+
+        await pool.query(
+            'INSERT INTO room_players (room_id, user_id) VALUES ($1, $2)',
+            [result.rows[0].id, userId]
+        );
 
         res.json({ success: true, room: result.rows[0] });
     } catch (error) {
@@ -733,9 +751,7 @@ router.post('/update-activity', authenticateToken, async (req, res) => {
 });
 
 
-// ==================== АДМИНСКИЙ ЭКСПОРТ ДАННЫХ ====================
 
-// Получить все данные из указанной таблицы
 router.get('/admin/table-data/:tableName', authenticateToken, requireAdmin, async (req, res) => {
     try {
         const { tableName } = req.params;
@@ -810,33 +826,46 @@ router.get('/admin/export/:tableName', authenticateToken, requireAdmin, async (r
             return res.status(404).json({ error: 'Нет данных для экспорта' });
         }
 
-        // Формируем CSV
         const columns = Object.keys(result.rows[0]);
-        let csv = columns.join(',') + '\n';
 
-        result.rows.forEach(row => {
-            const values = columns.map(col => {
+        // Функция для правильного экранирования CSV
+        const escapeCSV = (value) => {
+            if (value === null || value === undefined) return '';
+            let str = String(value);
+            // Если есть запятая, кавычка или перенос строки — оборачиваем в кавычки
+            if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
+                str = '"' + str.replace(/"/g, '""') + '"';
+            }
+            return str;
+        };
+
+        // Заголовки
+        let csv = columns.map(col => escapeCSV(col)).join(',') + '\n';
+
+        // Данные
+        for (const row of result.rows) {
+            const rowValues = columns.map(col => {
                 let val = row[col];
-                if (val === null) return '';
-                if (typeof val === 'object') val = JSON.stringify(val);
-                if (typeof val === 'string' && (val.includes(',') || val.includes('"') || val.includes('\n'))) {
-                    val = '"' + val.replace(/"/g, '""') + '"';
+                // Форматируем даты для CSV
+                if (col.includes('_at') && val) {
+                    val = new Date(val).toLocaleString('ru-RU');
                 }
-                return val;
+                return escapeCSV(val);
             });
-            csv += values.join(',') + '\n';
-        });
+            csv += rowValues.join(',') + '\n';
+        }
 
-        res.setHeader('Content-Type', 'text/csv');
+        // Устанавливаем правильную кодировку для русского текста
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
         res.setHeader('Content-Disposition', `attachment; filename=${tableName}_${Date.now()}.csv`);
-        res.send(csv);
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+        res.send('\uFEFF' + csv); // BOM для поддержки русского языка
 
     } catch (error) {
         console.error('Error exporting table:', error);
         res.status(500).json({ error: 'Ошибка экспорта данных' });
     }
 });
-
 // Получить статистику по всем таблицам
 router.get('/admin/db-stats', authenticateToken, requireAdmin, async (req, res) => {
     try {

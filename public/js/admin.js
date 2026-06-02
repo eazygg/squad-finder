@@ -261,15 +261,29 @@ class AdminPanel {
         }
     }
 
+
+    formatDateForDisplay(dateString) {
+        if (!dateString) return '-';
+        const date = new Date(dateString);
+        return date.toLocaleString('ru-RU', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        }).replace(',', '');
+    }
+
     displayTableData(data) {
         const container = document.getElementById('dataTable');
         if (!container) return;
 
         if (!data.data || data.data.length === 0) {
             container.innerHTML = `
-                <thead><tr><th>Нет данных</th></thead>
-                <tbody><tr><td>В таблице нет записей</td></tr></tbody>
-            `;
+            <thead><tr><th>Нет данных</th></tr></thead>
+            <tbody><tr><td>В таблице нет записей</td></tr></tbody>
+        `;
             return;
         }
 
@@ -280,12 +294,24 @@ class AdminPanel {
         ).join('')}</tr></thead>`;
 
         const tbody = `<tbody>${data.data.map(row => `
-            <tr>${columns.map(col => `
-                <td title="${this.escapeHtml(String(row[col] || '-'))}">
-                    ${this.truncateText(row[col])}
-                </td>
-            `).join('')}</tr>
-        `).join('')}</tbody>`;
+        <tr>
+            ${columns.map(col => {
+            let value = row[col];
+            // Форматируем даты
+            if (col.includes('_at') && value) {
+                value = this.formatDateForDisplay(value);
+            }
+            // Форматируем null
+            if (value === null || value === undefined) value = '-';
+            // Булевы значения
+            if (typeof value === 'boolean') value = value ? 'Да' : 'Нет';
+
+            return `<td title="${this.escapeHtml(String(value))}">
+                    ${this.truncateText(value)}
+                </td>`;
+        }).join('')}
+        </tr>
+    `).join('')}</tbody>`;
 
         container.innerHTML = thead + tbody;
     }
