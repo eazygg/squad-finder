@@ -644,16 +644,48 @@ router.post('/upload-avatar', authenticateToken, upload.single('avatar'), async 
 router.get('/dialogs', authenticateToken, async (req, res) => {
     try {
         const userId = req.user.userId;
+
         const result = await pool.query(`
-            SELECT DISTINCT u.id as user_id, u.username, u.avatar_url, u.last_login,
-                   (SELECT COUNT(*) FROM private_messages WHERE from_user_id = u.id AND to_user_id = $1 AND is_read = false) as unread_count,
-                   (SELECT message FROM private_messages WHERE (from_user_id = $1 AND to_user_id = u.id) OR (from_user_id = u.id AND to_user_id = $1) ORDER BY created_at DESC LIMIT 1) as last_message
+            SELECT DISTINCT
+                u.id as user_id,
+                u.username,
+                u.avatar_url,
+                u.last_login,
+                COALESCE((
+                             SELECT COUNT(*) FROM private_messages
+                             WHERE from_user_id = u.id AND to_user_id = $1 AND is_read = false
+                         ), 0) as unread_count,
+                (
+                    SELECT message FROM private_messages
+                    WHERE (from_user_id = $1 AND to_user_id = u.id)
+                       OR (from_user_id = u.id AND to_user_id = $1)
+                    ORDER BY created_at DESC
+                    LIMIT 1
+                ) as last_message,
+                (
+                    SELECT created_at FROM private_messages 
+                    WHERE (from_user_id = $1 AND to_user_id = u.id)
+                OR (from_user_id = u.id AND to_user_id = $1)
+                ORDER BY created_at DESC
+                LIMIT 1
+                ) as last_message_time
             FROM users u
-            INNER JOIN private_messages pm ON (pm.from_user_id = u.id AND pm.to_user_id = $1) OR (pm.to_user_id = u.id AND pm.from_user_id = $1)
             WHERE u.id != $1
-            GROUP BY u.id, u.username, u.avatar_url, u.last_login
-            ORDER BY MAX(pm.created_at) DESC
+              AND (
+                EXISTS (
+                SELECT 1 FROM private_messages pm
+                WHERE (pm.from_user_id = u.id AND pm.to_user_id = $1)
+               OR (pm.to_user_id = u.id AND pm.from_user_id = $1)
+                )
+               OR u.id IN (
+                SELECT DISTINCT from_user_id FROM private_messages WHERE to_user_id = $1
+                UNION
+                SELECT DISTINCT to_user_id FROM private_messages WHERE from_user_id = $1
+                )
+                )
+            ORDER BY last_message_time DESC NULLS LAST
         `, [userId]);
+
         res.json(result.rows);
     } catch (error) {
         console.error('Error fetching dialogs:', error);

@@ -938,7 +938,8 @@ class RoomManager {
     sendPrivateMessage(userId, username) {
         if (typeof privateChat !== 'undefined' && privateChat) {
             privateChat.openChat();
-            setTimeout(() => {
+            setTimeout(async () => {
+                await privateChat.loadDialogs();
                 privateChat.openDialog(userId, username);
             }, 200);
         } else {
