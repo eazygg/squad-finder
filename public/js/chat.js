@@ -482,15 +482,61 @@ class PrivateChat {
 
             if (response.ok) {
                 input.value = '';
-                // Добавляем сообщение в чат локально
                 const currentUserId = JSON.parse(localStorage.getItem('user')).id;
                 this.addMessageToChat(currentUserId, message);
+
+                // ✅ ОБНОВЛЯЕМ СПИСОК ДИАЛОГОВ
+                await this.loadDialogs();
+
+                // ✅ ОБНОВЛЯЕМ СЧЕТЧИК УВЕДОМЛЕНИЙ
+                this.updateUnreadCount();
             }
         } catch (error) {
             console.error('Error sending message:', error);
             dialog.error('Не удалось отправить сообщение', 'Ошибка');
         }
     }
+
+
+
+
+    updateUnreadCount() {
+        const totalUnread = this.dialogs.reduce((sum, d) => sum + (d.unread_count || 0), 0);
+
+        // Обновляем иконку на кнопке "Сообщения" во всех навигациях
+        const messageButtons = document.querySelectorAll('.nav-link-primary, .btn-primary[onclick*="privateChat.openChat"]');
+        messageButtons.forEach(btn => {
+            if (totalUnread > 0) {
+                btn.style.position = 'relative';
+                // Удаляем старый счетчик
+                const oldBadge = btn.querySelector('.unread-badge');
+                if (oldBadge) oldBadge.remove();
+                // Добавляем новый
+                const badge = document.createElement('span');
+                badge.className = 'unread-badge';
+                badge.textContent = totalUnread > 99 ? '99+' : totalUnread;
+                badge.style.cssText = `
+                position: absolute;
+                top: -8px;
+                right: -8px;
+                background: #ef4444;
+                color: white;
+                border-radius: 50%;
+                padding: 2px 6px;
+                font-size: 10px;
+                font-weight: bold;
+                min-width: 18px;
+                text-align: center;
+            `;
+                btn.style.position = 'relative';
+                btn.appendChild(badge);
+            } else {
+                const oldBadge = btn.querySelector('.unread-badge');
+                if (oldBadge) oldBadge.remove();
+            }
+        });
+    }
+
 
     addMessageToChat(fromUserId, message) {
         const container = document.getElementById('chatMessages');
@@ -512,7 +558,9 @@ class PrivateChat {
 
     handleNewMessage(message) {
         // Обновляем список диалогов
-        this.loadDialogs();
+        this.loadDialogs().then(() => {
+            this.updateUnreadCount();
+        });
 
         // Если открыт диалог с этим пользователем, добавляем сообщение
         if (this.currentDialog && this.currentDialog.userId === message.from_user_id) {
@@ -522,7 +570,6 @@ class PrivateChat {
             this.showNotification(message);
         }
     }
-
     showNotification(message) {
         // Простое уведомление (можно улучшить)
         dialog.info(`Новое сообщение от ${message.from_username}`, 'Сообщение');
