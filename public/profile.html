@@ -9,14 +9,6 @@
     <link rel="stylesheet" href="/css/profile.css">
 </head>
 <body>
-<footer class="footer">
-    <p>© 2026 Squad Finder. Все права защищены.</p>
-    <p style="margin-top: 10px;">
-        <a href="/privacy.html" style="color: rgba(255,255,255,0.7); text-decoration: none; margin: 0 10px;">
-            <i class="fas fa-shield-alt"></i> Политика конфиденциальности
-        </a>
-    </p>
-</footer>
 <div class="container">
     <header class="profile-header">
         <div class="header-content">
@@ -97,7 +89,7 @@
         <div class="profile-card">
             <h3><i class="fas fa-gamepad"></i> Мои игры</h3>
 
-            <!-- Блок выбора игр (показывается когда нет сохраненных игр или при нажатии "Изменить выбор") -->
+            <!-- Блок выбора игр -->
             <div id="gamesSelectionBlock" class="games-selection" style="display: none;">
                 <div class="search-container">
                     <input type="text" id="gameSearch" placeholder="Поиск игр..." class="search-input">
@@ -114,7 +106,7 @@
                 </button>
             </div>
 
-            <!-- Блок сохраненных игр (показывается когда есть игры) -->
+            <!-- Блок сохраненных игр -->
             <div id="savedGamesCard">
                 <div id="savedGamesContainer" class="saved-games-container"></div>
                 <button class="btn-secondary btn-sm" onclick="profile.editGames()">
@@ -124,6 +116,16 @@
         </div>
     </div>
 </div>
+
+<footer class="footer">
+    <p>© 2026 Squad Finder. Все права защищены.</p>
+    <p style="margin-top: 10px;">
+        <a href="/privacy.html" style="color: rgba(255,255,255,0.7); text-decoration: none; margin: 0 10px;">
+            <i class="fas fa-shield-alt"></i> Политика конфиденциальности
+        </a>
+    </p>
+</footer>
+
 <script src="/socket.io/socket.io.js"></script>
 <script src="/js/dialog.js"></script>
 <script src="/js/app-state-manager.js"></script>
