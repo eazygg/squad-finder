@@ -457,7 +457,6 @@ class Profile {
                     }
                 });
 
-                // Обновляем счетчик выбранных игр
                 this.updateSelectedGames();
             }
         } catch (error) {
@@ -754,16 +753,32 @@ class Profile {
             return;
         }
 
+        // Сохраняем выбранные игры перед перерисовкой
+        const selectedGamesSet = new Set(
+            Array.from(document.querySelectorAll('.game-checkbox:checked'))
+                .map(cb => cb.value)
+        );
+
         const renderGamesList = (games) => {
             container.innerHTML = games.map(game => `
             <div class="game-item" data-game="${game}">
                 <input type="checkbox" id="game-${this.hashCode(game)}" 
-                       class="game-checkbox" value="${game}">
+                       class="game-checkbox" value="${game}"
+                       ${selectedGamesSet.has(game) ? 'checked' : ''}>
                 <label for="game-${this.hashCode(game)}" class="game-item-label">
                     <span class="game-name">${this.escapeHtml(game)}</span>
                 </label>
             </div>
         `).join('');
+
+            // Восстанавливаем классы selected
+            document.querySelectorAll('.game-checkbox').forEach(cb => {
+                if (cb.checked) {
+                    cb.closest('.game-item')?.classList.add('selected');
+                }
+            });
+
+            this.updateSelectedGames();
         };
 
         // Первоначальная отрисовка
@@ -771,7 +786,11 @@ class Profile {
 
         // Поиск игр
         if (searchInput) {
-            searchInput.addEventListener('input', (e) => {
+            // Удаляем старый обработчик, чтобы не дублировать
+            const newSearchInput = searchInput.cloneNode(true);
+            searchInput.parentNode.replaceChild(newSearchInput, searchInput);
+
+            newSearchInput.addEventListener('input', (e) => {
                 const searchTerm = e.target.value.toLowerCase();
                 const filteredGames = this.availableGames.filter(game =>
                     game.toLowerCase().includes(searchTerm)
@@ -780,7 +799,10 @@ class Profile {
             });
         }
 
-        // Обработка кликов
+        // Обработка кликов (один раз, через делегирование)
+        if (container._listenerAdded) return;
+        container._listenerAdded = true;
+
         container.addEventListener('click', (e) => {
             const gameItem = e.target.closest('.game-item');
             if (gameItem) {
@@ -815,24 +837,19 @@ class Profile {
         const selectedCount = document.getElementById('selectedCount');
         const selectedList = document.getElementById('selectedGamesList');
 
-        selectedCount.textContent = selectedGames.length;
+        if (selectedCount) selectedCount.textContent = selectedGames.length;
 
-        selectedList.innerHTML = selectedGames.map(game => `
-        <div class="selected-game-tag">
-            ${game}
-            <button class="remove-btn" onclick="profile.removeGame('${game.replace(/'/g, "\\'")}')">×</button>
-        </div>
-    `).join('');
+        if (selectedList) {
+            selectedList.innerHTML = selectedGames.map(game => `
+            <div class="selected-game-tag">
+                ${this.escapeHtml(game)}
+                <button class="remove-btn" onclick="profile.removeGame('${this.escapeHtml(game).replace(/'/g, "\\'")}')">×</button>
+            </div>
+        `).join('');
+        }
 
-        // Обновляем визуальное состояние всех плашек
-        document.querySelectorAll('.game-item').forEach(item => {
-            const checkbox = item.querySelector('.game-checkbox');
-            if (checkbox.checked) {
-                item.classList.add('selected');
-            } else {
-                item.classList.remove('selected');
-            }
-        });
+        // Сохраняем выбранные игры в localStorage для восстановления
+        localStorage.setItem('tempSelectedGames', JSON.stringify(selectedGames));
     }
 
     bindEvents() {
