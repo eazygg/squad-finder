@@ -137,81 +137,93 @@ class UserProfileViewer {
     displayUserProfile(userData) {
         const container = document.getElementById('otherUserProfileContainer');
 
-        container.innerHTML = `
-            <!-- Основная информация -->
-            <div class="profile-card">
-                <div class="profile-info">
-                    <div class="avatar-section">
-    <div class="avatar-container">
-        ${userData.avatar_url ?
-            `<img src="${userData.avatar_url}" 
-                  class="avatar-image" 
-                  alt="${userData.username}" 
-                  onerror="this.onerror=null; this.src='/uploads/default-avatar.png';">` :
-            `<div class="avatar-placeholder"><i class="fas fa-user"></i></div>`
+        // ✅ ТОЛЬКО ЭТА ЧАСТЬ ИЗМЕНЕНА (добавлен fallback на default-avatar.png)
+        const timestamp = new Date().getTime();
+        let avatarHtml;
+        if (userData.avatar_url && userData.avatar_url !== 'null' && userData.avatar_url !== 'undefined' && userData.avatar_url.trim() !== '') {
+            avatarHtml = `<img src="${userData.avatar_url}?t=${timestamp}" 
+                          class="avatar-image" 
+                          alt="${userData.username}" 
+                          onerror="this.onerror=null; this.src='/uploads/default-avatar.png?t=${timestamp}';">`;
+        } else {
+            avatarHtml = `<img src="/uploads/default-avatar.png?t=${timestamp}" 
+                          class="avatar-image" 
+                          alt="${userData.username}" 
+                          onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">`;
         }
-    </div>
-</div>
-                    <div class="user-details">
-                        <h2>${this.escapeHtml(userData.username)}</h2>
-                        <p class="user-email">${this.escapeHtml(userData.email)}</p>
-                        <p class="member-since">Участник с: ${new Date(userData.created_at).toLocaleDateString('ru-RU')}</p>
+
+        container.innerHTML = `
+        <!-- Основная информация -->
+        <div class="profile-card">
+            <div class="profile-info">
+                <div class="avatar-section">
+                    <div class="avatar-container">
+                        ${avatarHtml}
+                        <div class="avatar-placeholder" style="display: none;">
+                            <i class="fas fa-user"></i>
+                        </div>
                     </div>
                 </div>
-            </div>
-
-            <!-- Психологический портрет -->
-            <div class="profile-card">
-                <h3><i class="fas fa-brain"></i> Психологический портрет</h3>
-                ${userData.test_completed ? this.generateTraitsHTML(userData) : `
-                    <div class="test-not-completed">
-                        <p>🤔 Пользователь еще не прошел психологический тест</p>
-                    </div>
-                `}
-            </div>
-
-            <!-- История тестов -->
-            <div class="profile-card">
-                <h3><i class="fas fa-history"></i> История тестов</h3>
-                <div id="userTestHistory">
-                    <div class="loading">Загрузка истории...</div>
+                <div class="user-details">
+                    <h2>${this.escapeHtml(userData.username)}</h2>
+                    <p class="user-email">${this.escapeHtml(userData.email)}</p>
+                    <p class="member-since">Участник с: ${new Date(userData.created_at).toLocaleDateString('ru-RU')}</p>
                 </div>
             </div>
+        </div>
 
-            <!-- Игры пользователя -->
-            <div class="profile-card">
-                <h3><i class="fas fa-gamepad"></i> Любимые игры</h3>
-                ${userData.games && userData.games.length > 0 ?
+        <!-- Психологический портрет -->
+        <div class="profile-card">
+            <h3><i class="fas fa-brain"></i> Психологический портрет</h3>
+            ${userData.test_completed ? this.generateTraitsHTML(userData) : `
+                <div class="test-not-completed">
+                    <p>🤔 Пользователь еще не прошел психологический тест</p>
+                </div>
+            `}
+        </div>
+
+        <!-- История тестов -->
+        <div class="profile-card">
+            <h3><i class="fas fa-history"></i> История тестов</h3>
+            <div id="userTestHistory">
+                <div class="loading">Загрузка истории...</div>
+            </div>
+        </div>
+
+        <!-- Игры пользователя -->
+        <div class="profile-card">
+            <h3><i class="fas fa-gamepad"></i> Любимые игры</h3>
+            ${userData.games && userData.games.length > 0 ?
             this.generateGamesHTML(userData.games) :
             '<p>📭 Пользователь еще не выбрал игры</p>'
         }
-            </div>
+        </div>
 
-            <!-- Совместимость -->
-            ${userData.test_completed && this.currentUser?.test_completed ? `
-                <div class="profile-card">
-                    <h3><i class="fas fa-chart-line"></i> Совместимость с вами</h3>
-                    <div id="compatibilityResult">
-                        <div class="loading">Расчет совместимости...</div>
-                    </div>
+        <!-- Совместимость -->
+        ${userData.test_completed && this.currentUser?.test_completed ? `
+            <div class="profile-card">
+                <h3><i class="fas fa-chart-line"></i> Совместимость с вами</h3>
+                <div id="compatibilityResult">
+                    <div class="loading">Расчет совместимости...</div>
                 </div>
-            ` : ''}
-
-            <!-- Действия -->
-            <div class="profile-view-actions">
-                ${this.currentUser && this.currentUser.id != userData.id ? `
-                    <button class="btn btn-primary private-chat-btn view-profile-btn" onclick="userProfileViewer.startPrivateChat(${userData.id}, '${this.escapeHtml(userData.username)}')">
-                        <i class="fas fa-comment"></i> Написать сообщение
-                    </button>
-                    <button class="btn btn-secondary view-profile-btn" onclick="userProfileViewer.checkCompatibility(${userData.id})">
-                        <i class="fas fa-chart-bar"></i> Проверить совместимость
-                    </button>
-                    <button class="btn btn-success view-profile-btn" onclick="userProfileViewer.inviteToRoom(${userData.id}, '${this.escapeHtml(userData.username)}')">
-                        <i class="fas fa-user-plus"></i> Пригласить в комнату
-                    </button>
-                ` : ''}
             </div>
-        `;
+        ` : ''}
+
+        <!-- Действия -->
+        <div class="profile-view-actions">
+            ${this.currentUser && this.currentUser.id != userData.id ? `
+                <button class="btn btn-primary private-chat-btn view-profile-btn" onclick="userProfileViewer.startPrivateChat(${userData.id}, '${this.escapeHtml(userData.username)}')">
+                    <i class="fas fa-comment"></i> Написать сообщение
+                </button>
+                <button class="btn btn-secondary view-profile-btn" onclick="userProfileViewer.checkCompatibility(${userData.id})">
+                    <i class="fas fa-chart-bar"></i> Проверить совместимость
+                </button>
+                <button class="btn btn-success view-profile-btn" onclick="userProfileViewer.inviteToRoom(${userData.id}, '${this.escapeHtml(userData.username)}')">
+                    <i class="fas fa-user-plus"></i> Пригласить в комнату
+                </button>
+            ` : ''}
+        </div>
+    `;
 
         // Если пользователь прошел тест и текущий пользователь тоже, рассчитываем совместимость
         if (userData.test_completed && this.currentUser?.test_completed && this.currentUser.id != userData.id) {
